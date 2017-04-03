@@ -2,11 +2,10 @@ package oauth
 
 import (
 	"golang.org/x/oauth2"
-	"os"
 	"golang.org/x/oauth2/google"
-	"fmt"
 	"strings"
 	"errors"
+	"github.com/muandrew/battlecode-ladder/utils"
 )
 
 const (
@@ -61,14 +60,5 @@ func Init(redirectPath string) (map[string]*OAConfig, error) {
 }
 
 func getKeyForApp(key string, app string, fail func()) string {
-	return getRequiredEnv("OAUTH_" + strings.ToUpper(app) + key, fail)
-}
-
-func getRequiredEnv(key string, fail func()) string {
-	value := os.Getenv(key)
-	if value == "" {
-		fmt.Printf("Your env variable %s was not configured.\n", key)
-		fail()
-	}
-	return value
+	return utils.GetRequiredEnv("OAUTH_" + strings.ToUpper(app) + key, fail)
 }

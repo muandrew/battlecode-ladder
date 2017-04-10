@@ -51,7 +51,7 @@ func Init(redirectPath string) (map[string]*OAConfig, error) {
 	for _, item := range auths {
 		m[item.App] = item
 	}
-	if (success) {
+	if success {
 		return m, nil
 	} else {
 		return nil, errors.New("Initialization Failed.")

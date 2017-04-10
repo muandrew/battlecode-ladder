@@ -13,10 +13,14 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"golang.org/x/net/context"
+	gmodels "github.com/muandrew/battlecode-ladder/google/models"
+	"github.com/muandrew/battlecode-ladder/db"
+	"github.com/muandrew/battlecode-ladder/models"
 )
 
 var authProviders map[string]*oauth.OAConfig
 var jwtSecret []byte
+var data db.Db
 
 const jwtCookieName = "xbclauth"
 
@@ -31,6 +35,8 @@ func main() {
 		return
 	}
 	authProviders = providers
+
+	data = db.NewMemDb()
 
 	initSuccess := true
 	jwtSecret = []byte(utils.GetRequiredEnv("JWT_SECRET", func() {
@@ -79,31 +85,29 @@ func getCallback(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Some error has occured.")
 	}
 
-	_, err = http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
-	//response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Some error has occured2.")
 	}
-
-	//defer response.Body.Close()
-	//contents, _ := ioutil.ReadAll(response.Body)
-	//return c.String(http.StatusOK, fmt.Sprintf("Content: %s\n", contents))
-	//fmt.Println(c.String(http.StatusOK, fmt.Sprintf("Content: %s\n", contents)))
-	t := setJwtInCookie(c, "Test User")
-	return c.JSON(http.StatusOK, map[string]string{
-		"token": t,
+	info := new(gmodels.UserInfo)
+	utils.ReadBody(response, info)
+	user := data.GetUserWithApp(app, info.ID, func() *models.User {
+		user := models.CreateUserWithNewUuid()
+		user.Name = info.Name
+		return user
 	})
-	//return c.Redirect(http.StatusTemporaryRedirect, "https://www." + app + ".com")
+	setJwtInCookie(c, user)
+	return c.JSON(http.StatusOK, info)
 }
 
-func setJwtInCookie(c echo.Context, name string) string {
+func setJwtInCookie(c echo.Context, user *models.User) string {
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["name"] = name
-	claims["admin"] = true
+	claims["uuid"] = user.Uuid
+	claims["name"] = user.Name
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	// Generate encoded token and send it as response.
@@ -122,18 +126,10 @@ func setJwtInCookie(c echo.Context, name string) string {
 }
 
 func getCookie(c echo.Context) error {
-	t := setJwtInCookie(c, "John Doe")
+	t := setJwtInCookie(c, models.UserDummy)
 	return c.String(http.StatusOK, "set: " + t)
 }
 
 func getInspect(c echo.Context) error {
-	jwtCookie, _ := c.Cookie(jwtCookieName)
-	name := ""
-	if jwtCookie != nil {
-		name = jwtCookie.Value
-	}
-	//user := c.Get("user").(*jwt.Token)
-	//claims := user.Claims.(jwt.MapClaims)
-	//name := claims["name"].(string)
-	return c.String(http.StatusOK, "get: " + name)
+	return c.JSON(http.StatusOK, data.GetAllUsers())
 }

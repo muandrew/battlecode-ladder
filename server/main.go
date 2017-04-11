@@ -60,7 +60,7 @@ func main() {
 	r.Use(middleware.JWTWithConfig(config))
 	r.GET("/", restricted)
 
-	e.Static("/", "client")
+	e.Static("/", "../client")
 	e.Logger.Fatal(e.Start(":8080"))
 }
 

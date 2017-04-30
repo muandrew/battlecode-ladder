@@ -29,12 +29,13 @@ func NewAuth(data db.Db, jwtSecret []byte) *Auth {
 	}
 }
 
-func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) {
+func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) *models.User{
 	user := auth.data.GetUserWithApp(app, appUuid, func() *models.User {
 		user := models.CreateUserWithNewUuid()
 		return setupUser(user)
 	})
 	auth.setJwtInCookie(c, user)
+	return  user
 }
 
 func (auth Auth) setJwtInCookie(c echo.Context, user *models.User) string {

@@ -5,14 +5,13 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/oauth"
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo/middleware"
 	"fmt"
 	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/joho/godotenv"
 	"log"
 	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/muandrew/battlecode-ladder/auth"
+	"github.com/muandrew/battlecode-ladder/lazy"
 )
 
 var data db.Db
@@ -43,10 +42,12 @@ func main() {
 	if err != nil {
 		return
 	}
+	t := lazy.NewInstance()
+	t.Init(e, authentication.AuthMiddleware)
 
 	e.GET("/inspect/", getInspect)
 	r := e.Group("/restricted")
-	r.Use(middleware.JWTWithConfig(authentication.JwtConfig))
+	r.Use(authentication.AuthMiddleware)
 	r.GET("/", restricted)
 
 	e.Static("/", "../client")
@@ -54,9 +55,7 @@ func main() {
 }
 
 func restricted(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	name := claims["name"].(string)
+	name := auth.GetName(c)
 	return c.String(http.StatusOK, "Welcome " + name + "!")
 }
 

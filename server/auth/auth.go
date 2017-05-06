@@ -15,17 +15,18 @@ const jwtCookieName = "xbclauth"
 type Auth struct {
 	data db.Db
 	jwtSecret []byte
-	JwtConfig middleware.JWTConfig
+	AuthMiddleware echo.MiddlewareFunc
 }
 
 func NewAuth(data db.Db, jwtSecret []byte) *Auth {
 	config := middleware.DefaultJWTConfig
 	config.SigningKey = jwtSecret
 	config.TokenLookup = "cookie:" + jwtCookieName
+	authMiddleware := middleware.JWTWithConfig(config)
 	return &Auth{
 		data:data,
 		jwtSecret:jwtSecret,
-		JwtConfig:config,
+		AuthMiddleware:authMiddleware,
 	}
 }
 
@@ -63,3 +64,14 @@ func (auth Auth) setJwtInCookie(c echo.Context, user *models.User) string {
 	return t
 }
 
+func GetName(c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	return claims["name"].(string)
+}
+
+func GetUuid(c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	return claims["uuid"].(string)
+}

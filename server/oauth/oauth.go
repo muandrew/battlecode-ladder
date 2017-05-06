@@ -109,11 +109,13 @@ func getGetCallback(oamap OAMap, authp *auth.Auth) func(echo.Context) error {
 		if err != nil {
 			return err
 		}
-		user, err := config.GetUser(c, authp, token.AccessToken)
+		_, err = config.GetUser(c, authp, token.AccessToken)
 		if err != nil {
 			return err
 		} else {
-			return c.JSON(http.StatusOK, user)
+			//return c.JSON(http.StatusOK, user)
+			//todo stop being so lazy
+			return c.Redirect(http.StatusTemporaryRedirect, "/lazy/loggedin/")
 		}
 	}
 }

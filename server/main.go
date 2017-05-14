@@ -22,13 +22,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	data = db.NewMemDb()
-
 	initSuccess := true
 	onFail := func() {
 		initSuccess = false
 	}
 	jwtSecret := []byte(utils.GetRequiredEnv("JWT_SECRET", onFail))
+	data = db.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
+	//data = db.NewMemDb()
 	rootAddress := utils.GetRequiredEnv("ROOT_ADDRESS", onFail)
 	port := utils.GetRequiredEnv("PORT", onFail)
 	if !initSuccess {
@@ -46,11 +46,13 @@ func main() {
 	t.Init(e, authentication.AuthMiddleware)
 
 	e.GET("/inspect/", getInspect)
+	e.GET("/test/", getTest)
 	r := e.Group("/restricted")
 	r.Use(authentication.AuthMiddleware)
 	r.GET("/", restricted)
 
-	e.Static("/", "../client")
+	//e.Static("/", "../client")
+	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":"+port))
 }
 
@@ -61,4 +63,13 @@ func restricted(c echo.Context) error {
 
 func getInspect(c echo.Context) error {
 	return c.JSON(http.StatusOK, data.GetAllUsers())
+}
+
+func getRedirected(c echo.Context) error {
+	return c.Redirect(http.StatusTemporaryRedirect, "/lazy/")
+}
+
+func getTest(c echo.Context) error {
+	utils.RunShell("sh", []string{"test.sh"})
+	return c.String(http.StatusOK, "Groot!")
 }

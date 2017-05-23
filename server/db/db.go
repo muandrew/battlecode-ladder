@@ -6,4 +6,5 @@ type Db interface {
 	GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User
 	GetUser(uuid string) *models.User
 	GetAllUsers() []*models.User
+	EnqueueBot(model *models.Bot) error
 }

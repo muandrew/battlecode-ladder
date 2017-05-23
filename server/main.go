@@ -27,7 +27,10 @@ func main() {
 		initSuccess = false
 	}
 	jwtSecret := []byte(utils.GetRequiredEnv("JWT_SECRET", onFail))
-	data = db.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
+	data, err := db.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
+	if err != nil {
+		log.Fatalf("Failed to init redis: %s", err)
+	}
 	//data = db.NewMemDb()
 	rootAddress := utils.GetRequiredEnv("ROOT_ADDRESS", onFail)
 	port := utils.GetRequiredEnv("PORT", onFail)
@@ -43,7 +46,7 @@ func main() {
 		return
 	}
 	t := lazy.NewInstance()
-	t.Init(e, authentication.AuthMiddleware)
+	t.Init(e, authentication.AuthMiddleware, data)
 
 	e.GET("/inspect/", getInspect)
 	e.GET("/test/", getTest)

@@ -8,6 +8,8 @@ import (
 	"github.com/muandrew/battlecode-ladder/auth"
 	"os"
 	"fmt"
+	"github.com/muandrew/battlecode-ladder/models"
+	"github.com/muandrew/battlecode-ladder/db"
 )
 
 type Template struct {
@@ -20,7 +22,7 @@ func NewInstance() *Template {
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc) {
+func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.GET("/", getHello)
@@ -28,7 +30,7 @@ func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc) {
 	r := g.Group("/loggedin")
 	r.Use(auth)
 	r.GET("/", getLoggedIn)
-	r.POST("/upload/", postUpload)
+	r.POST("/upload/", wrapPostUpload(data))
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -47,33 +49,46 @@ func getLoggedIn(c echo.Context) error {
 	return c.Render(http.StatusOK, "loggedin", auth.GetName(c))
 }
 
-func postUpload(c echo.Context) error {
-	userUuid := auth.GetUuid(c)
-	file, err := c.FormFile("file")
-	if err != nil {
-		return err
-	}
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
+func wrapPostUpload(data db.Db) func(context echo.Context) error {
+	return func (c echo.Context) error {
+		      userUuid := auth.GetUuid(c)
+		file, err := c.FormFile("file")
+		if err != nil {
+			return err
+		}
+		botName := c.FormValue("name")
+		botPackage := c.FormValue("package")
 
-	// Destination
-	prefix := "user/"+userUuid
-	//todo not be lazy
-	os.MkdirAll(prefix, 0777)
-	dst, err := os.Create(prefix + "/test.txt")
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer dst.Close()
+		bot := models.CreateBotWithNewUuidAndUserUuid(userUuid)
+		bot.Name = botName
+		bot.Package = botPackage
 
-	// Copy
-	if _, err = io.Copy(dst, src); err != nil {
-		return err
-	}
+		src, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer src.Close()
 
-	return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
+		// Destination
+		prefix := "user/"+userUuid+"/"+bot.Uuid
+		//todo not be lazy
+		os.MkdirAll(prefix, 0777)
+		dst, err := os.Create(prefix + "/test.txt")
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		defer dst.Close()
+
+		// Copy
+		if _, err = io.Copy(dst, src); err != nil {
+			return err
+		}
+
+		//todo respond to error
+		data.EnqueueBot(bot)
+
+		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
+	}
 }
+

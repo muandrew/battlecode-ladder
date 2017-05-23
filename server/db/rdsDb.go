@@ -12,34 +12,41 @@ type RdsDb struct {
 	pool *redis.Pool
 }
 
-func NewRdsDb(addr string) *RdsDb {
-	return &RdsDb{pool: &redis.Pool{
+func NewRdsDb(addr string) (*RdsDb, error) {
+	rdb := &RdsDb{pool: &redis.Pool{
 		MaxIdle: 3,
 		IdleTimeout: 240 * time.Second,
 		Dial: func () (redis.Conn, error) { return redis.Dial("tcp", addr) },
 	}}
+	err := rdb.Ping()
+	if err != nil {
+		return nil, err
+	} else {
+		return rdb, nil
+	}
 }
 
-func (db RdsDb) Ping(){
+func (db RdsDb) Ping() error {
 	c := db.pool.Get()
 	defer c.Close()
 	response, err := c.Do("PING")
 	if err != nil {
-		fmt.Print(err)
+		return err
 	} else {
-		fmt.Print(response)
+		fmt.Printf("redis ping: %s\n",response)
+		return nil
 	}
 }
 func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
 	c := db.pool.Get()
 	defer c.Close()
 	appKey := "oauth"+":"+app+":"+appUuid
-	userUuid, err := c.Do("GET", appKey)
+	userUuid, err := redis.String(c.Do("GET", appKey))
 	if err != nil {
 		return nil
 	}
-	if userUuid != nil {
-		userBin, err := c.Do("GET", userUuid)
+	if userUuid != "" {
+		userBin, err := c.Do("GET", "user:"+userUuid)
 		if err != nil {
 			return nil
 		}
@@ -47,6 +54,7 @@ func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *
 			bin := userBin.([]byte)
 			usr := &models.User{}
 			json.Unmarshal([]byte(bin), usr)
+			fmt.Printf("usr %s", usr)
 			return usr
 		}
 	} else {
@@ -61,14 +69,51 @@ func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *
 }
 
 func (db RdsDb) GetUser(uuid string) *models.User {
+	model := &models.User{}
+	db.getDeserializeModelWithKey(model, "user:"+uuid)
+	return model
+}
+
+func (db RdsDb) EnqueueBot(model *models.Bot) error {
 	c := db.pool.Get()
 	defer c.Close()
-	key := "user:"+uuid
-	bini, _ :=c.Do("GET",key)
-	usr := &models.User{}
-	bin := bini.([]byte)
-	json.Unmarshal(bin, usr)
-	return usr
+	err := c.Send("SET", "user:"+model.UserUuid+":latest-bot", model)
+	if err != nil {
+		return err
+	}
+	err = c.Send("LPUSH", "user:"+model.UserUuid+":bot-list", model)
+	if err != nil {
+		return err
+	}
+	err = c.Flush()
+	if err != nil {
+		return err
+	}
+	_, err = c.Receive()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//func (db RdsDb) SetLatestBuild(model *models.Bot) error {
+//	return db.setModelWithKey(model, "user:"+model.UserUuid+":latest-bot")
+//}
+
+func (db RdsDb) GetLatestBot(userUuid string) *models.Bot {
+	model := &models.Bot{}
+	db.getDeserializeModelWithKey(model, "user:"+userUuid+":latest-bot")
+	return model
+}
+
+func (db RdsDb) SetLatestCompletedBot(model *models.Bot) error {
+	return db.setModelWithKey(model, "user:"+model.UserUuid+":latest-complete-bot")
+}
+
+func (db RdsDb) GetLatestCompletedBot(userUuid string) *models.Bot {
+	model := &models.Bot{}
+	db.getDeserializeModelWithKey(model, "user:"+userUuid+":latest-complete-bot")
+	return model
 }
 
 func (db RdsDb) GetAllUsers() []*models.User {
@@ -80,5 +125,23 @@ func (db RdsDb) GetAllUsers() []*models.User {
 	//	i++
 	//}
 	//return allUsers
+	return nil
+}
+
+func (db RdsDb) setModelWithKey(model interface{}, key string) error {
+	c := db.pool.Get()
+	defer c.Close()
+	_, err :=c.Do("SET",key, model)
+	return err
+}
+
+func (db RdsDb) getDeserializeModelWithKey(model interface{}, key string) error {
+	c := db.pool.Get()
+	defer c.Close()
+	bin, err :=c.Do("GET",key)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(bin.([]byte), model)
 	return nil
 }

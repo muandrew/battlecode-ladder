@@ -6,7 +6,7 @@
     <title>Battlecode Ladder</title>
 </head>
 <body>
-    Hello {{.}}<br>
+    Hello {{.name}}<br>
     <br>
     <form action="/lazy/loggedin/upload/" method="post" enctype="multipart/form-data">
         File: <input type="file" name="file"><br>
@@ -15,6 +15,10 @@
         <br>
         <input type="submit" value="Submit">
     </form>
+    <p>
+        Latest Completed Build<br>
+        {{.latest_completed_build}}
+    </p>
 </body>
 </html>
 {{end}}

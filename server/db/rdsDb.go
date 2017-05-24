@@ -54,7 +54,6 @@ func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *
 			bin := userBin.([]byte)
 			usr := &models.User{}
 			json.Unmarshal([]byte(bin), usr)
-			fmt.Printf("usr %s", usr)
 			return usr
 		}
 	} else {
@@ -142,6 +141,8 @@ func (db RdsDb) getDeserializeModelWithKey(model interface{}, key string) error 
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(bin.([]byte), model)
+	if bin != nil {
+		json.Unmarshal(bin.([]byte), model)
+	}
 	return nil
 }

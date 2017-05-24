@@ -29,7 +29,7 @@ func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db) {
 	g.GET("/login/",getLogin)
 	r := g.Group("/loggedin")
 	r.Use(auth)
-	r.GET("/", getLoggedIn)
+	r.GET("/", wrapGetLoggedIn(data))
 	r.POST("/upload/", wrapPostUpload(data))
 }
 
@@ -45,8 +45,14 @@ func getLogin(c echo.Context) error {
 	return c.Render(http.StatusOK, "login", nil)
 }
 
-func getLoggedIn(c echo.Context) error {
-	return c.Render(http.StatusOK, "loggedin", auth.GetName(c))
+func wrapGetLoggedIn(data db.Db) func(context echo.Context) error {
+	return func(c echo.Context) error{
+		model := map[string]interface{}{
+			"name": auth.GetName(c),
+			"latest_complete_build": data.GetLatestCompletedBot(auth.GetUuid(c)),
+		}
+		return c.Render(http.StatusOK, "loggedin", model)
+	}
 }
 
 func wrapPostUpload(data db.Db) func(context echo.Context) error {

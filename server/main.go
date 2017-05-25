@@ -12,6 +12,7 @@ import (
 	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/muandrew/battlecode-ladder/auth"
 	"github.com/muandrew/battlecode-ladder/lazy"
+	"github.com/muandrew/battlecode-ladder/build"
 )
 
 var data db.Db
@@ -45,9 +46,13 @@ func main() {
 	if err != nil {
 		return
 	}
-	t := lazy.NewInstance()
-	t.Init(e, authentication.AuthMiddleware, data)
+	//todo error handling
+	ci := build.NewCi(data)
+	defer ci.Close()
 
+	t := lazy.NewInstance()
+	t.Init(e, authentication.AuthMiddleware, data, ci)
+	
 	e.GET("/inspect/", getInspect)
 	e.GET("/test/", getTest)
 	r := e.Group("/restricted")

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/db"
+	"github.com/muandrew/battlecode-ladder/build"
 )
 
 type Template struct {
@@ -22,7 +23,7 @@ func NewInstance() *Template {
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db) {
+func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.GET("/", getHello)
@@ -30,7 +31,7 @@ func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db) {
 	r := g.Group("/loggedin")
 	r.Use(auth)
 	r.GET("/", wrapGetLoggedIn(data))
-	r.POST("/upload/", wrapPostUpload(data))
+	r.POST("/upload/", wrapPostUpload(data, c))
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -55,7 +56,7 @@ func wrapGetLoggedIn(data db.Db) func(context echo.Context) error {
 	}
 }
 
-func wrapPostUpload(data db.Db) func(context echo.Context) error {
+func wrapPostUpload(data db.Db, ci *build.Ci) func(context echo.Context) error {
 	return func (c echo.Context) error {
 		      userUuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")
@@ -79,7 +80,7 @@ func wrapPostUpload(data db.Db) func(context echo.Context) error {
 		prefix := "user/"+userUuid+"/"+bot.Uuid
 		//todo not be lazy
 		os.MkdirAll(prefix, 0777)
-		dst, err := os.Create(prefix + "/test.txt")
+		dst, err := os.Create(prefix + "/source.jar")
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -93,6 +94,7 @@ func wrapPostUpload(data db.Db) func(context echo.Context) error {
 
 		//todo respond to error
 		data.EnqueueBot(bot)
+		ci.SubmitJob(bot)
 
 		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
 	}

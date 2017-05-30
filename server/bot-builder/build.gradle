@@ -65,6 +65,15 @@ if (!project.hasProperty("teamB")) {
 if (!project.hasProperty("maps")) {
     ext.maps = "shrine"
 }
+if (!project.hasProperty("teamAUrl")) {
+    ext.teamAUrl = "/"
+}
+if (!project.hasProperty("teamBUrl")) {
+    ext.teamBUrl = "/"
+}
+if (!project.hasProperty("matchUrl")) {
+    ext.matchUrl = "/"
+}
 
 build.group = 'battlecode'
 
@@ -88,13 +97,13 @@ task run(type: JavaExec, dependsOn: 'build') {
         '-Dbc.server.mode=headless',
         '-Dbc.server.map-path=maps',
         '-Dbc.server.debug=true',
-        '-Dbc.engine.debug-methods=true',
+        '-Dbc.engine.debug-methods=false',
         '-Dbc.game.team-a='+project.property('teamA'),
         '-Dbc.game.team-b='+project.property('teamB'),
-        '-Dbc.game.team-a.url='+sourceSets.main.output.classesDir,
-        '-Dbc.game.team-b.url='+sourceSets.main.output.classesDir,
+        '-Dbc.game.team-a.url='+project.property('teamAUrl'),
+        '-Dbc.game.team-b.url='+project.property('teamBUrl'),
         '-Dbc.game.maps='+project.property('maps'),
-        '-Dbc.server.save-file=' + 'matches/' + project.property('teamA') + '-vs-' + project.property('teamB') + '-on-' + project.property('maps') + '.bc17'
+        '-Dbc.server.save-file='+project.property('matchUrl') + '.bc17'
     ]
 }
 

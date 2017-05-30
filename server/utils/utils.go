@@ -10,6 +10,12 @@ import (
 	"bufio"
 )
 
+func ExitOnDev(){
+	if IsDev() {
+		os.Exit(1)
+	}
+}
+
 func ReadBody(r *http.Response, t interface{}) error {
 	defer r.Body.Close()
 	return json.NewDecoder(r.Body).Decode(t)
@@ -27,7 +33,7 @@ func RunShell(command string, args []string) {
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		os.Exit(1)
+		ExitOnDev()
 	}
 
 	scanner := bufio.NewScanner(cmdReader)
@@ -40,12 +46,12 @@ func RunShell(command string, args []string) {
 	err = cmd.Start()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		os.Exit(1)
+		ExitOnDev()
 	}
 
 	err = cmd.Wait()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		os.Exit(1)
+		ExitOnDev()
 	}
 }

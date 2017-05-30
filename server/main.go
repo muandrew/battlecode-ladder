@@ -19,6 +19,7 @@ var data db.Db
 
 func main() {
 	err := godotenv.Load("secrets.sh")
+	utils.Initialize("BCL_")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}

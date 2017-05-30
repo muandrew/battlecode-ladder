@@ -13,7 +13,7 @@ type Ci struct {
 }
 
 func NewCi(d db.Db) *Ci {
-	pool,_ := tunny.CreatePoolGeneric(1).Open()
+	pool,_ := tunny.CreateCustomPool(CreatePool(2)).Open()
 	return &Ci{
 		d:d,
 		pool: pool,
@@ -21,12 +21,18 @@ func NewCi(d db.Db) *Ci {
 }
 
 func (c Ci) SubmitJob(bot *models.Bot) {
-	c.pool.SendWork(func () {
-		utils.RunShell("sh", []string{"./scripts/build-bot.sh", bot.UserUuid, bot.Uuid})
+	c.pool.SendWork(func (workerId int) {
+		utils.RunShell("sh", []string{"scripts/build-bot.sh", bot.UserUuid, bot.Uuid})
 		lb := c.d.GetLatestBot(bot.UserUuid)
 		if lb.Uuid == bot.Uuid {
 			c.d.SetLatestCompletedBot(bot)
 		}
+	})
+}
+
+func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
+	c.pool.SendWork(func (workerId int) {
+
 	})
 }
 

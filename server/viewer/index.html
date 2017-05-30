@@ -1,0 +1,19 @@
+<!--<!DOCTYPE html>-->
+<html>
+    <head>
+        <title>Battlecode Client</title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Graduate">
+        <script type="text/javascript" src="/bc17/bundle.js" charset="utf-8"></script>
+    </head>
+    <body>
+        <div id='client'/>
+        <script type="text/javascript">
+            window.battleClient = window.battlecode.mount(
+                document.getElementById('client'),
+                {
+                    matchFileURL: '/replay/' + window.location.search.substring(1) + '.bc17'
+                });
+        </script>
+    </body>
+</html>
+

@@ -55,12 +55,13 @@ func main() {
 	t.Init(e, authentication.AuthMiddleware, data, ci)
 	
 	e.GET("/inspect/", getInspect)
-	e.GET("/test/", getTest)
 	r := e.Group("/restricted")
 	r.Use(authentication.AuthMiddleware)
 	r.GET("/", restricted)
 
-	//e.Static("/", "../client")
+	e.Static("/bc17", "viewer/bc17")
+	e.Static("/viewer", "viewer")
+	e.Static("/replay", "bl-data/match")
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":"+port))
 }
@@ -76,9 +77,4 @@ func getInspect(c echo.Context) error {
 
 func getRedirected(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, "/lazy/")
-}
-
-func getTest(c echo.Context) error {
-	utils.RunShell("sh", []string{"test.sh"})
-	return c.String(http.StatusOK, "Groot!")
 }

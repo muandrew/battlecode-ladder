@@ -9,13 +9,13 @@ import (
 	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/joho/godotenv"
 	"log"
-	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/muandrew/battlecode-ladder/auth"
 	"github.com/muandrew/battlecode-ladder/lazy"
 	"github.com/muandrew/battlecode-ladder/build"
+	"github.com/muandrew/battlecode-ladder/data"
 )
 
-var data db.Db
+var db data.Db
 
 func main() {
 	err := godotenv.Load("secrets.sh")
@@ -29,18 +29,17 @@ func main() {
 		initSuccess = false
 	}
 	jwtSecret := []byte(utils.GetRequiredEnv("JWT_SECRET", onFail))
-	data, err := db.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
+	db, err = data.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
 	if err != nil {
 		log.Fatalf("Failed to init redis: %s", err)
 	}
-	//data = db.NewMemDb()
 	rootAddress := utils.GetRequiredEnv("ROOT_ADDRESS", onFail)
 	port := utils.GetRequiredEnv("PORT", onFail)
 	if !initSuccess {
 		fmt.Println("Init failed.")
 		return
 	}
-	authentication := auth.NewAuth(data, jwtSecret)
+	authentication := auth.NewAuth(db, jwtSecret)
 
 	e := echo.New()
 	_, err = oauth.Init(e, rootAddress, "/", authentication)
@@ -48,11 +47,11 @@ func main() {
 		return
 	}
 	//todo error handling
-	ci := build.NewCi(data)
+	ci := build.NewCi(db)
 	defer ci.Close()
 
 	t := lazy.NewInstance()
-	t.Init(e, authentication.AuthMiddleware, data, ci)
+	t.Init(e, authentication.AuthMiddleware, db, ci)
 	
 	e.GET("/inspect/", getInspect)
 	r := e.Group("/restricted")
@@ -72,7 +71,7 @@ func restricted(c echo.Context) error {
 }
 
 func getInspect(c echo.Context) error {
-	return c.JSON(http.StatusOK, data.GetAllUsers())
+	return c.JSON(http.StatusOK, db.GetAllUsers())
 }
 
 func getRedirected(c echo.Context) error {

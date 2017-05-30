@@ -6,32 +6,32 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"time"
 	"net/http"
-	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/labstack/echo/middleware"
+	"github.com/muandrew/battlecode-ladder/data"
 )
 
 const jwtCookieName = "xbclauth"
 
 type Auth struct {
-	data db.Db
-	jwtSecret []byte
+	db             data.Db
+	jwtSecret      []byte
 	AuthMiddleware echo.MiddlewareFunc
 }
 
-func NewAuth(data db.Db, jwtSecret []byte) *Auth {
+func NewAuth(db data.Db, jwtSecret []byte) *Auth {
 	config := middleware.DefaultJWTConfig
 	config.SigningKey = jwtSecret
 	config.TokenLookup = "cookie:" + jwtCookieName
 	authMiddleware := middleware.JWTWithConfig(config)
 	return &Auth{
-		data:data,
+		db:db,
 		jwtSecret:jwtSecret,
 		AuthMiddleware:authMiddleware,
 	}
 }
 
 func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) *models.User{
-	user := auth.data.GetUserWithApp(app, appUuid, func() *models.User {
+	user := auth.db.GetUserWithApp(app, appUuid, func() *models.User {
 		user := models.CreateUserWithNewUuid()
 		return setupUser(user)
 	})

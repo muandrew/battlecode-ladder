@@ -1,21 +1,21 @@
 package build
 
 import (
-	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/jeffail/tunny"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/utils"
+	"github.com/muandrew/battlecode-ladder/data"
 )
 
 type Ci struct {
-	d db.Db
+	db    data.Db
 	pool *tunny.WorkPool
 }
 
-func NewCi(d db.Db) *Ci {
+func NewCi(db data.Db) *Ci {
 	pool,_ := tunny.CreateCustomPool(CreatePool(2)).Open()
 	return &Ci{
-		d:d,
+		db:db,
 		pool: pool,
 	}
 }
@@ -23,9 +23,9 @@ func NewCi(d db.Db) *Ci {
 func (c Ci) SubmitJob(bot *models.Bot) {
 	c.pool.SendWork(func (workerId int) {
 		utils.RunShell("sh", []string{"scripts/build-bot.sh", bot.UserUuid, bot.Uuid})
-		lb := c.d.GetLatestBot(bot.UserUuid)
+		lb := c.db.GetLatestBot(bot.UserUuid)
 		if lb.Uuid == bot.Uuid {
-			c.d.SetLatestCompletedBot(bot)
+			c.db.SetLatestCompletedBot(bot)
 		}
 	})
 }

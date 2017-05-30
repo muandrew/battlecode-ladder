@@ -9,8 +9,8 @@ import (
 	"os"
 	"fmt"
 	"github.com/muandrew/battlecode-ladder/models"
-	"github.com/muandrew/battlecode-ladder/db"
 	"github.com/muandrew/battlecode-ladder/build"
+	"github.com/muandrew/battlecode-ladder/data"
 )
 
 type Template struct {
@@ -23,7 +23,7 @@ func NewInstance() *Template {
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data db.Db, c *build.Ci) {
+func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data data.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.GET("/", getHello)
@@ -46,17 +46,17 @@ func getLogin(c echo.Context) error {
 	return c.Render(http.StatusOK, "login", nil)
 }
 
-func wrapGetLoggedIn(data db.Db) func(context echo.Context) error {
+func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 	return func(c echo.Context) error{
 		model := map[string]interface{}{
 			"name": auth.GetName(c),
-			"latest_complete_build": data.GetLatestCompletedBot(auth.GetUuid(c)),
+			"latest_complete_build": db.GetLatestCompletedBot(auth.GetUuid(c)),
 		}
 		return c.Render(http.StatusOK, "loggedin", model)
 	}
 }
 
-func wrapPostUpload(data db.Db, ci *build.Ci) func(context echo.Context) error {
+func wrapPostUpload(db data.Db, ci *build.Ci) func(context echo.Context) error {
 	return func (c echo.Context) error {
 		      userUuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")
@@ -93,7 +93,7 @@ func wrapPostUpload(data db.Db, ci *build.Ci) func(context echo.Context) error {
 		}
 
 		//todo respond to error
-		data.EnqueueBot(bot)
+		db.EnqueueBot(bot)
 		ci.SubmitJob(bot)
 
 		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))

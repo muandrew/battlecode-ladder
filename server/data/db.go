@@ -10,4 +10,6 @@ type Db interface {
 	GetLatestCompletedBot(userUuid string) *models.Bot
 	SetLatestCompletedBot(model *models.Bot) error
 	EnqueueBot(model *models.Bot) error
+	AddCompletedMatch(model *models.Match) error
+	GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int)
 }

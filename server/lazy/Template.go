@@ -23,15 +23,16 @@ func NewInstance() *Template {
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, data data.Db, c *build.Ci) {
+func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, db data.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.GET("/", getHello)
 	g.GET("/login/",getLogin)
 	r := g.Group("/loggedin")
 	r.Use(auth)
-	r.GET("/", wrapGetLoggedIn(data))
-	r.POST("/upload/", wrapPostUpload(data, c))
+	r.GET("/", wrapGetLoggedIn(db))
+	r.POST("/upload/", wrapPostUpload(c))
+	r.POST("/challenge/", wrapPostChallenge(db, c))
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -48,15 +49,20 @@ func getLogin(c echo.Context) error {
 
 func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 	return func(c echo.Context) error{
+		uuid := auth.GetUuid(c)
+		matches, length := db.GetMatches(uuid,0, 5)
 		model := map[string]interface{}{
 			"name": auth.GetName(c),
-			"latest_complete_build": db.GetLatestCompletedBot(auth.GetUuid(c)),
+			"uuid": uuid,
+			"latest_complete_build": db.GetLatestCompletedBot(uuid),
+			"latest_matches": matches,
+			"length": length,
 		}
 		return c.Render(http.StatusOK, "loggedin", model)
 	}
 }
 
-func wrapPostUpload(db data.Db, ci *build.Ci) func(context echo.Context) error {
+func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 	return func (c echo.Context) error {
 		      userUuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")
@@ -93,10 +99,26 @@ func wrapPostUpload(db data.Db, ci *build.Ci) func(context echo.Context) error {
 		}
 
 		//todo respond to error
-		db.EnqueueBot(bot)
 		ci.SubmitJob(bot)
 
 		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
+	}
+}
+
+func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) error {
+	return func (c echo.Context) error {
+		userUuid := auth.GetUuid(c)
+		opponentUuid := c.FormValue("opponentUuid")
+
+		ownBot := db.GetLatestCompletedBot(userUuid)
+		oppBot := db.GetLatestCompletedBot(opponentUuid)
+
+		if ownBot != nil && oppBot != nil {
+			ci.RunMatch(ownBot, oppBot)
+			return c.Render(http.StatusOK, "challenged", nil)
+		} else {
+			return c.Render(http.StatusOK, "challenge_failed", nil)
+		}
 	}
 }
 

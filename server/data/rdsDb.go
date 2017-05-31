@@ -8,6 +8,11 @@ import (
 	"encoding/json"
 )
 
+const (
+	addSet = "SET"
+	addLpush = "LPUSH"
+)
+
 type RdsDb struct {
 	pool *redis.Pool
 }
@@ -76,11 +81,11 @@ func (db RdsDb) GetUser(uuid string) *models.User {
 func (db RdsDb) EnqueueBot(model *models.Bot) error {
 	c := db.pool.Get()
 	defer c.Close()
-	err := c.Send("SET", "user:"+model.UserUuid+":latest-bot", model)
+	err := db.send(c, addSet, "user:"+model.UserUuid+":latest-bot", model)
 	if err != nil {
 		return err
 	}
-	err = c.Send("LPUSH", "user:"+model.UserUuid+":bot-list", model)
+	err = db.send(c, addLpush, "user:"+model.UserUuid+":bot-list", model)
 	if err != nil {
 		return err
 	}
@@ -115,6 +120,27 @@ func (db RdsDb) GetLatestCompletedBot(userUuid string) *models.Bot {
 	return model
 }
 
+func (db RdsDb) AddCompletedMatch(model *models.Match) error {
+	c := db.pool.Get()
+	defer c.Close()
+
+	err := c.Send("SET", "match:"+model.Uuid)
+	if err != nil {
+		return err
+	}
+	bin, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+	for _,bot := range model.Bots {
+		err := c.Send("LPUSH", "user:"+bot.UserUuid +":match-list", bin)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (db RdsDb) GetAllUsers() []*models.User {
 	//allUsers := make([]*models.User, len(db.users))
 	//
@@ -127,10 +153,34 @@ func (db RdsDb) GetAllUsers() []*models.User {
 	return nil
 }
 
+
+func (db RdsDb) send(c redis.Conn, action string, key string, model interface{}) error {
+	bin, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+	return c.Send(action, key, bin)
+}
+
 func (db RdsDb) setModelWithKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
-	_, err :=c.Do("SET",key, model)
+	bin, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+	_, err =c.Do("SET",key, bin)
+	return err
+}
+
+func (db RdsDb) pushModelWithKey(model interface{}, key string) error {
+	c := db.pool.Get()
+	defer c.Close()
+	bin, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+	_, err = c.Do("LPUSH",key, bin)
 	return err
 }
 
@@ -145,4 +195,21 @@ func (db RdsDb) getDeserializeModelWithKey(model interface{}, key string) error 
 		json.Unmarshal(bin.([]byte), model)
 	}
 	return nil
+}
+
+func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
+	c := db.pool.Get()
+	defer c.Close()
+	length, _ := redis.Int(c.Do("LLEN","user:"+userUuid +":match-list"))
+	start := page * pageSize
+	end := start + pageSize - 1
+	rawBinArr, _ := c.Do("LRANGE","user:"+userUuid +":match-list", start, end)
+	binArr := rawBinArr.([]interface{})
+	matches := make([]*models.Match, len(binArr))
+	for i, bin := range binArr {
+		match := &models.Match{}
+		json.Unmarshal(bin.([]byte), match)
+		matches[i] = match
+	}
+	return matches, length
 }

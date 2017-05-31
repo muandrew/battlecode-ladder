@@ -7,18 +7,32 @@
 </head>
 <body>
     Hello {{.name}}<br>
+    Your Uuid is {{.uuid}}<br>
     <br>
     <form action="/lazy/loggedin/upload/" method="post" enctype="multipart/form-data">
         File: <input type="file" name="file"><br>
         Name: <input type="text" name="name"><br>
         Package: <input type="text" name="package"><br>
         <br>
-        <input type="submit" value="Submit">
-    </form>
-    <p>
-        Latest Completed Build<br>
-        {{.latest_completed_build}}
-    </p>
+        <input type="submit" value="Upload">
+    </form><br>
+
+    <form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
+        Opponent Uuid: <input type="text" name="opponentUuid"><br>
+        <br>
+        <input type="submit" value="Challenge">
+    </form><br>
+    Latest Completed Build<br>
+    {{.latest_complete_build}}<br>
+    <br>
+    {{.length}}
+    Latest Matches:<br>
+    {{range .latest_matches}}
+        {{range .Bots}}
+            {{.Package}}
+        {{end}}
+        <a href="/viewer/?{{.Uuid}}">replay</a><br>
+    {{end}}
 </body>
 </html>
 {{end}}

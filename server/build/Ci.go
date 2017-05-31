@@ -5,6 +5,9 @@ import (
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/muandrew/battlecode-ladder/data"
+	"strconv"
+	"github.com/satori/go.uuid"
+	"fmt"
 )
 
 type Ci struct {
@@ -21,6 +24,7 @@ func NewCi(db data.Db) *Ci {
 }
 
 func (c Ci) SubmitJob(bot *models.Bot) {
+	c.db.EnqueueBot(bot)
 	c.pool.SendWork(func (workerId int) {
 		utils.RunShell("sh", []string{"scripts/build-bot.sh", bot.UserUuid, bot.Uuid})
 		lb := c.db.GetLatestBot(bot.UserUuid)
@@ -32,7 +36,20 @@ func (c Ci) SubmitJob(bot *models.Bot) {
 
 func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 	c.pool.SendWork(func (workerId int) {
-
+		match := models.CreateMatch(uuid.NewV4().String())
+		match.Bots = []*models.Bot{bot1, bot2}
+		utils.RunShell("sh", []string{
+			"scripts/run-match.sh",
+			strconv.Itoa(workerId),
+			match.Uuid,
+			bot1.UserUuid,
+			bot1.Uuid,
+			bot1.Package,
+			bot2.UserUuid,
+			bot2.Uuid,
+			bot2.Package,
+		})
+		c.db.AddCompletedMatch(match)
 	})
 }
 

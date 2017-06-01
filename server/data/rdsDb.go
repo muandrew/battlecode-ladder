@@ -46,10 +46,7 @@ func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *
 	c := db.pool.Get()
 	defer c.Close()
 	appKey := "oauth"+":"+app+":"+appUuid
-	userUuid, err := redis.String(c.Do("GET", appKey))
-	if err != nil {
-		return nil
-	}
+	userUuid, _ := redis.String(c.Do("GET", appKey))
 	if userUuid != "" {
 		userBin, err := c.Do("GET", "user:"+userUuid)
 		if err != nil {

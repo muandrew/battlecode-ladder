@@ -84,8 +84,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 
 		// Destination
 		prefix := "bl-data/user/"+userUuid+"/bot/"+bot.Uuid
-		//todo not be lazy
-		os.MkdirAll(prefix, 0777)
+		os.MkdirAll(prefix, 0755)
 		dst, err := os.Create(prefix + "/source.jar")
 		if err != nil {
 			fmt.Println(err)

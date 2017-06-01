@@ -25,12 +25,10 @@
     Latest Completed Build<br>
     {{.latest_complete_build}}<br>
     <br>
-    {{.length}}
     Latest Matches:<br>
     {{range .latest_matches}}
-        {{range .Bots}}
-            {{.Package}}
-        {{end}}
+        bots: {{range .Bots}} {{.Package}} {{end}}<br>
+        time: {{.CompletedTimestamp}}<br>
         <a href="/viewer/?{{.Uuid}}">replay</a><br>
     {{end}}
 </body>

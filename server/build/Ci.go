@@ -7,7 +7,7 @@ import (
 	"github.com/muandrew/battlecode-ladder/data"
 	"strconv"
 	"github.com/satori/go.uuid"
-	"fmt"
+	"time"
 )
 
 type Ci struct {
@@ -38,6 +38,7 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 	c.pool.SendWork(func (workerId int) {
 		match := models.CreateMatch(uuid.NewV4().String())
 		match.Bots = []*models.Bot{bot1, bot2}
+		match.CompletedTimestamp = time.Now().Unix()
 		utils.RunShell("sh", []string{
 			"scripts/run-match.sh",
 			strconv.Itoa(workerId),

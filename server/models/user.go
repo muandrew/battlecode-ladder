@@ -9,11 +9,6 @@ type User struct{
 	Name string
 }
 
-var UserDummy = &User{
-	Uuid:"0",
-	Name:"Dummy User",
-}
-
 func CreateUserWithNewUuid() *User {
 	user := new(User)
 	user.Uuid = uuid.NewV4().String()

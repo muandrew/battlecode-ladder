@@ -10,7 +10,7 @@ type worker struct {
 	id int
 }
 
-func CreatePool(numWorkers int) []tunny.TunnyWorker {
+func CreateWorkers(numWorkers int) []tunny.TunnyWorker {
 	workers := make([]tunny.TunnyWorker, numWorkers)
 	for i := range workers {
 		workers[i] = &worker{

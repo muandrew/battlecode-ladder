@@ -69,12 +69,17 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 		if err != nil {
 			return err
 		}
-		botName := c.FormValue("name")
-		botPackage := c.FormValue("package")
 
-		bot := models.CreateBotWithNewUuidAndUserUuid(userUuid)
-		bot.Name = botName
-		bot.Package = botPackage
+		bot, err := models.CreateBot(
+			c.FormValue("name"),
+			c.FormValue("package"),
+			c.FormValue("description"),
+		)
+		if err != nil {
+			return err
+		}
+
+		bot.UserUuid = userUuid
 
 		src, err := file.Open()
 		if err != nil {

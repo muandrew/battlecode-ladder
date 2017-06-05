@@ -45,10 +45,10 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 			match.Uuid,
 			bot1.UserUuid,
 			bot1.Uuid,
-			bot1.Package,
+			bot1.Package.GetPackageFormat(),
 			bot2.UserUuid,
 			bot2.Uuid,
-			bot2.Package,
+			bot2.Package.GetPackageFormat(),
 		})
 		c.db.AddCompletedMatch(match)
 	}, nil)

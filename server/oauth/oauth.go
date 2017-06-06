@@ -63,11 +63,12 @@ func Init(e *echo.Echo, address string, prefix string, authp *auth.Auth) (OAMap,
 				}
 				info := new(gmodels.UserInfo)
 				utils.ReadBody(response, info)
-				user := authp.GetUserWithApp(c, "google", info.ID, func(user *models.User) *models.User {
-					user.Name = info.Name
-					return user
+				if err != nil {return nil, err}
+				usr := authp.GetUserWithApp(c, "google", info.ID, func() *models.User {
+					mUser, _ := models.CreateUser(info.Name)
+					return mUser
 				})
-				return user, nil
+				return usr, nil
 			},
 			[]string{
 				"https://www.googleapis.com/auth/userinfo.profile",

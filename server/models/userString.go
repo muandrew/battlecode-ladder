@@ -3,6 +3,7 @@ package models
 import (
 	"regexp"
 	"errors"
+	"strings"
 )
 
 type UserString string
@@ -29,6 +30,8 @@ func NewUserString(userInputString string, limit int, filters ...func(string) er
 	if len(userInputString) > limit {
 		return "", errors.New("Above the limit")
 	} else {
+		userInputString = strings.Replace(userInputString, "<", "&lt", -1)
+		userInputString = strings.Replace(userInputString, ">", "&gt", -1)
 		for _, filter := range filters {
 			err := filter(userInputString)
 			if err != nil {

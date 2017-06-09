@@ -26,6 +26,7 @@ func NewInstance() *Template {
 func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, db data.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
+	g.Static("/static", "lazy/static")
 	g.GET("/", getHello)
 	g.GET("/login/",getLogin)
 	r := g.Group("/loggedin")

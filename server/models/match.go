@@ -1,11 +1,19 @@
 package models
 
-type Match struct{
-	Uuid string
-	Bots []*Bot
-	CompletedTimestamp int64
+import (
+	"github.com/satori/go.uuid"
+)
+
+type Match struct {
+	Uuid   string
+	Bots   []*Bot
+	Status *BuildStatus
 }
 
-func CreateMatch(uuid string) *Match {
-	return &Match{Uuid:uuid}
+func CreateMatch(bots []*Bot) *Match {
+	return &Match{
+		Uuid:   uuid.NewV4().String(),
+		Bots:   bots,
+		Status: NewBuildStatus(),
+	}
 }

@@ -10,22 +10,27 @@
         File: <input type="file" name="file"><br>
         Name: <input type="text" name="name"><br>
         Package: <input type="text" name="package"><br>
+        Description: <input type="text" name="description"><br>
         <br>
         <input type="submit" value="Upload">
     </form><br>
 
     <form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
-        Opponent Uuid: <input type="text" name="opponentUuid"><br>
+        Bot Uuid: <input type="text" name="botUuid"><br>
+        Opponent Uuid: <input type="text" name="oppUuid"><br>
         <br>
         <input type="submit" value="Challenge">
     </form><br>
-    Latest Completed Build<br>
-    {{.latest_complete_build}}<br>
+    Latest Bots<br>
+    {{range .latest_bots}}
+        {{.}}<br>
+        {{.Status}}<br>
+    {{end}}
     <br>
     Latest Matches:<br>
     {{range .latest_matches}}
         bots: {{range .Bots}} {{.Package}} {{end}}<br>
-        time: {{.CompletedTimestamp}}<br>
+        time: {{.Status}}<br>
         <a href="/viewer/?{{.Uuid}}">replay</a><br>
     {{end}}
 </body>

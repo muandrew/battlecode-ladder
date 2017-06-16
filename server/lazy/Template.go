@@ -28,7 +28,7 @@ func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, db data.Db, c *b
 	g := e.Group("/lazy")
 	g.Static("/static", "lazy/static")
 	g.GET("/", getHello)
-	g.GET("/login/",getLogin)
+	g.GET("/login/", getLogin)
 	r := g.Group("/loggedin")
 	r.Use(auth)
 	r.GET("/", wrapGetLoggedIn(db))
@@ -49,38 +49,38 @@ func getLogin(c echo.Context) error {
 }
 
 func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
-	return func(c echo.Context) error{
+	return func(c echo.Context) error {
 		uuid := auth.GetUuid(c)
-		matches, length := db.GetMatches(uuid,0, 5)
+		bots, _ := db.GetBots(uuid, 0, 5)
+		matches, length := db.GetMatches(uuid, 0, 5)
+		fmt.Printf("b %q \n \\n",matches[0] )
 		model := map[string]interface{}{
-			"name": auth.GetName(c),
-			"uuid": uuid,
-			"latest_complete_build": db.GetLatestCompletedBot(uuid),
+			"name":           auth.GetName(c),
+			"uuid":           uuid,
+			"latest_bots":    bots,
 			"latest_matches": matches,
-			"length": length,
+			"length":         length,
 		}
 		return c.Render(http.StatusOK, "loggedin", model)
 	}
 }
 
 func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
-	return func (c echo.Context) error {
-		      userUuid := auth.GetUuid(c)
+	return func(c echo.Context) error {
+		uuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")
 		if err != nil {
 			return err
 		}
-
 		bot, err := models.CreateBot(
-			c.FormValue("name"),
+			models.NewCompetitor(models.CompetitorTypeUser, uuid),
 			c.FormValue("package"),
+			c.FormValue("name"),
 			c.FormValue("description"),
 		)
 		if err != nil {
 			return err
 		}
-
-		bot.UserUuid = userUuid
 
 		src, err := file.Open()
 		if err != nil {
@@ -89,7 +89,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 		defer src.Close()
 
 		// Destination
-		prefix := "bl-data/user/"+userUuid+"/bot/"+bot.Uuid
+		prefix := "bl-data/bot/" + bot.Uuid
 		os.MkdirAll(prefix, 0755)
 		dst, err := os.Create(prefix + "/source.jar")
 		if err != nil {
@@ -111,12 +111,12 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 }
 
 func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) error {
-	return func (c echo.Context) error {
-		userUuid := auth.GetUuid(c)
-		opponentUuid := c.FormValue("opponentUuid")
+	return func(c echo.Context) error {
+		botUuid := c.FormValue("botUuid")
+		oppUuid := c.FormValue("oppUuid")
 
-		ownBot := db.GetLatestCompletedBot(userUuid)
-		oppBot := db.GetLatestCompletedBot(opponentUuid)
+		ownBot := db.GetBot(botUuid)
+		oppBot := db.GetBot(oppUuid)
 
 		if ownBot != nil && oppBot != nil {
 			ci.RunMatch(ownBot, oppBot)
@@ -126,4 +126,3 @@ func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) erro
 		}
 	}
 }
-

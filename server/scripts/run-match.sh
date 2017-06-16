@@ -3,18 +3,16 @@
 WORKER_ID=$1
 MATCH_UUID=$2
 
-USER_UUID_1=$3
-BOT_UUID_1=$4
-BOT_1_NAME=$5
+BOT_1_UUID=$3
+BOT_1_NAME=$4
 
-USER_UUID_2=$6
-BOT_UUID_2=$7
-BOT_2_NAME=$8
+BOT_2_UUID=$5
+BOT_2_NAME=$6
 
 #todo more resilient
 
-BOT_1_WRK=$PWD/bl-data/user/${USER_UUID_1}/bot/${BOT_UUID_1}/workspace/build/classes
-BOT_2_WRK=$PWD/bl-data/user/${USER_UUID_2}/bot/${BOT_UUID_2}/workspace/build/classes
+BOT_1_WRK=$PWD/bl-data/bot/${BOT_1_UUID}/workspace/build/classes
+BOT_2_WRK=$PWD/bl-data/bot/${BOT_2_UUID}/workspace/build/classes
 
 MATCH_URL=$PWD/bl-data/match/${MATCH_UUID}
 

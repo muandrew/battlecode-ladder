@@ -18,7 +18,7 @@ func TestRegexWhitelistFilter(t *testing.T) {
 	}
 	for _, c := range cases {
 		got, err := NewUserString(c.sin, 100, RegexBlacklist(c.rin))
-		if (got != nil) != c.wants {
+		if (got != "") != c.wants {
 			t.Errorf("Ouptput doesn't match: got %q want %q. case %q", got, c.wants, c)
 		}
 		if (err != nil) != c.wante {

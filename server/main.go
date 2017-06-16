@@ -53,7 +53,6 @@ func main() {
 	t := lazy.NewInstance()
 	t.Init(e, authentication.AuthMiddleware, db, ci)
 	
-	e.GET("/inspect/", getInspect)
 	r := e.Group("/restricted")
 	r.Use(authentication.AuthMiddleware)
 	r.GET("/", restricted)
@@ -68,10 +67,6 @@ func main() {
 func restricted(c echo.Context) error {
 	name := auth.GetName(c)
 	return c.String(http.StatusOK, "Welcome " + name + "!")
-}
-
-func getInspect(c echo.Context) error {
-	return c.JSON(http.StatusOK, db.GetAllUsers())
 }
 
 func getRedirected(c echo.Context) error {

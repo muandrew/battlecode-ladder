@@ -1,12 +1,11 @@
-<!--<!DOCTYPE html>-->
+<!DOCTYPE html>
 <html>
     <head>
         <title>Battlecode Client</title>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Graduate">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Graduate"/>
+        <div id='client'></div>
         <script type="text/javascript" src="/bc17/bundle.js" charset="utf-8"></script>
-    </head>
-    <body>
-        <div id='client'/>
         <script type="text/javascript">
             window.battleClient = window.battlecode.mount(
                 document.getElementById('client'),
@@ -14,6 +13,15 @@
                     matchFileURL: '/replay/' + window.location.search.substring(1) + '.bc17'
                 });
         </script>
+        <style>
+            html, body { height:100%; overflow: hidden; }
+            body { margin:0; }
+        </style>
+    </head>
+    <body>
+        <div id="altContent">
+            <h1>Loading Battlecode client...</h1>
+        </div>
     </body>
 </html>
 

@@ -53,7 +53,6 @@ func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 		uuid := auth.GetUuid(c)
 		bots, _ := db.GetBots(uuid, 0, 5)
 		matches, length := db.GetMatches(uuid, 0, 5)
-		fmt.Printf("b %q \n \\n",matches[0] )
 		model := map[string]interface{}{
 			"name":           auth.GetName(c),
 			"uuid":           uuid,

@@ -1,0 +1,14 @@
+{{define "dev_login"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "header"}}
+<body>
+<form action="/lazy/dev/login" method="post" enctype="multipart/form-data">
+    App: <input type="text" name="app"><br>
+    AppId: <input type="text" name="appUuid"><br>
+    <input type="submit" value="Login">
+</form>
+<br>
+</body>
+</html>
+{{end}}

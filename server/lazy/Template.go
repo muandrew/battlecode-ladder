@@ -11,6 +11,7 @@ import (
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
+	"github.com/muandrew/battlecode-ladder/utils"
 )
 
 type Template struct {
@@ -23,17 +24,22 @@ func NewInstance() *Template {
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, auth echo.MiddlewareFunc, db data.Db, c *build.Ci) {
+func (t *Template) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.Static("/static", "lazy/static")
 	g.GET("/", getHello)
 	g.GET("/login/", getLogin)
 	r := g.Group("/loggedin")
-	r.Use(auth)
+	r.Use(a.AuthMiddleware)
 	r.GET("/", wrapGetLoggedIn(db))
 	r.POST("/upload/", wrapPostUpload(c))
 	r.POST("/challenge/", wrapPostChallenge(db, c))
+
+	if utils.IsDev() {
+		d := g.Group("/dev")
+		d.GET("/login/", wrapGetDevLogin(a))
+	}
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -46,6 +52,21 @@ func getHello(c echo.Context) error {
 
 func getLogin(c echo.Context) error {
 	return c.Render(http.StatusOK, "login", nil)
+}
+
+func wrapGetDevLogin(a *auth.Auth) func(context echo.Context) error {
+	return func(c echo.Context) error {
+		a.GetUserWithApp(
+			c,
+			"dev",
+			"#000000",
+			func() *models.User {
+				user, _ := models.CreateUser("Dev")
+				return user
+			},
+		)
+		return c.Redirect(http.StatusTemporaryRedirect, "/lazy/loggedin/")
+	}
 }
 
 func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {

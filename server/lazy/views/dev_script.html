@@ -1,0 +1,13 @@
+{{define "dev_script"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "header"}}
+<body>
+<form action="/lazy/dev/script/" method="post" enctype="multipart/form-data">
+    name: <input type="text" name="script"><br>
+    <input type="submit" value="run!">
+</form>
+<br>
+</body>
+</html>
+{{end}}

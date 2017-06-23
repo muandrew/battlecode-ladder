@@ -39,6 +39,8 @@ func (t *Template) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	if utils.IsDev() {
 		d := g.Group("/dev")
 		d.GET("/login/", wrapGetDevLogin(a))
+		d.GET("/script/", getDevScript)
+		d.POST("/script/", postDevScript)
 	}
 }
 
@@ -67,6 +69,16 @@ func wrapGetDevLogin(a *auth.Auth) func(context echo.Context) error {
 		)
 		return c.Redirect(http.StatusTemporaryRedirect, "/lazy/loggedin/")
 	}
+}
+
+func getDevScript(c echo.Context) error {
+	return c.Render(http.StatusOK, "dev_script", nil)
+}
+
+func postDevScript(c echo.Context) error {
+	script := c.FormValue("script")
+	utils.RunShell("sh", []string{"scripts/" + script});
+	return c.Render(http.StatusOK, "dev_script", nil)
 }
 
 func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {

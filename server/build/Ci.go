@@ -27,8 +27,12 @@ func (c Ci) SubmitJob(bot *models.Bot) {
 	c.pool.SendWorkAsync(func(workerId int) {
 		bot.Status.SetStart()
 		c.db.UpdateBot(bot)
-		utils.RunShell("sh", []string{"scripts/build-bot.sh", bot.Uuid})
-		bot.Status.SetSuccess()
+		err := utils.RunShell("sh", []string{"scripts/build-bot.sh", bot.Uuid})
+		if err != nil {
+			bot.Status.SetFailure()
+		} else {
+			bot.Status.SetSuccess()
+		}
 		c.db.UpdateBot(bot)
 	}, nil)
 }
@@ -40,7 +44,7 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 	c.pool.SendWorkAsync(func(workerId int) {
 		match.Status.SetStart()
 		c.db.UpdateMatch(match)
-		utils.RunShell("sh", []string{
+		err := utils.RunShell("sh", []string{
 			"scripts/run-match.sh",
 			strconv.Itoa(workerId),
 			match.Uuid,
@@ -49,6 +53,11 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 			bot2.Uuid,
 			bot2.Package.GetPackageFormat(),
 		})
+		if err != nil {
+			match.Status.SetFailure()
+		} else {
+			match.Status.SetSuccess()
+		}
 		match.Status.SetSuccess()
 		c.db.UpdateMatch(match)
 	}, nil)

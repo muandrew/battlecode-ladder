@@ -35,3 +35,8 @@ func (b *BuildStatus) SetSuccess() {
 	b.Status = BuildStatusSuccess
 	b.CompleteTimestamp = time.Now().Unix()
 }
+
+func (b *BuildStatus) SetFailure() {
+	b.Status = BuildStatusFail
+	b.CompleteTimestamp = time.Now().Unix()
+}

@@ -16,7 +16,7 @@ func CreateWorkers(numWorkers int) []tunny.TunnyWorker {
 		workers[i] = &worker{
 			id: i,
 		}
-		utils.RunShell("sh", []string{"scripts/setup-worker-match-workspace.sh", strconv.Itoa(i)})
+		utils.FatalRunShell("sh", []string{"scripts/setup-worker-match-workspace.sh", strconv.Itoa(i)})
 	}
 	return workers
 }

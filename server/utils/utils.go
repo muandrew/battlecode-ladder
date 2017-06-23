@@ -27,13 +27,20 @@ func GetBody(r *http.Response) string {
 	return fmt.Sprintf("%s", contents)
 }
 
-func RunShell(command string, args []string) {
+func FatalRunShell(command string, args []string) {
+	err := RunShell(command, args)
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func RunShell(command string, args []string) error {
 	cmdName := command
 	cmd := exec.Command(cmdName, args...)
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		ExitOnDev()
+		return err
 	}
 
 	scanner := bufio.NewScanner(cmdReader)
@@ -46,12 +53,13 @@ func RunShell(command string, args []string) {
 	err = cmd.Start()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		ExitOnDev()
+		return err
 	}
 
 	err = cmd.Wait()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		ExitOnDev()
+		return err
 	}
+	return nil
 }

@@ -10,14 +10,14 @@ var isDev bool
 
 func Initialize(appPrefix string) {
 	prefix = appPrefix
-	isDev = getEnv("ENV") == "DEV"
+	isDev = GetEnv("ENV") == "DEV"
 }
 
 func getEnvKey(key string) string {
 	return prefix + key
 }
 
-func getEnv(key string) string {
+func GetEnv(key string) string {
 	return os.Getenv(getEnvKey(key))
 }
 

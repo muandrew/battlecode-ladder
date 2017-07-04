@@ -1,10 +1,11 @@
 #!/bin/bash
 
-WORKER_ID=$1
+DIR_WORKERS=$1
+WORKER_ID=$2
 
 #todo more resilient
 
-WKR_DIR=bl-data/worker/${WORKER_ID}
+WKR_DIR=${DIR_WORKERS}/${WORKER_ID}
 if [[ -d "$WKR_DIR" ]]; then
     rm -r ${WKR_DIR}
 fi

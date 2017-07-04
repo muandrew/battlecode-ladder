@@ -21,7 +21,7 @@ func main() {
 	err := godotenv.Load("secrets.sh")
 	utils.Initialize("BCL_")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file; err: %q", err)
 	}
 
 	initSuccess := true
@@ -47,7 +47,10 @@ func main() {
 		return
 	}
 	//todo error handling
-	ci := build.NewCi(db)
+	ci, err := build.NewCi(db)
+	if err != nil {
+		log.Fatalf("Failed to init Ci: %s", err)
+	}
 	defer ci.Close()
 
 	t := lazy.NewInstance()
@@ -59,7 +62,7 @@ func main() {
 
 	e.Static("/bc17", "viewer/bc17")
 	e.Static("/viewer", "viewer")
-	e.Static("/replay", "bl-data/match")
+	e.Static("/replay", ci.DirMatch)
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":" + port))
 }

@@ -2,21 +2,19 @@ package build
 
 import (
 	"github.com/jeffail/tunny"
-	"github.com/muandrew/battlecode-ladder/utils"
-	"strconv"
 )
 
 type worker struct {
 	id int
 }
 
-func CreateWorkers(numWorkers int) []tunny.TunnyWorker {
+func CreateWorkers(workerDir string, numWorkers int) []tunny.TunnyWorker {
 	workers := make([]tunny.TunnyWorker, numWorkers)
 	for i := range workers {
 		workers[i] = &worker{
 			id: i,
 		}
-		utils.FatalRunShell("sh", []string{"scripts/setup-worker-match-workspace.sh", strconv.Itoa(i)})
+		SetUpWorkspace(workerDir, i)
 	}
 	return workers
 }

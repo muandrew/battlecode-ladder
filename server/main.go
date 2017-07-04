@@ -62,7 +62,7 @@ func main() {
 
 	e.Static("/bc17", "viewer/bc17")
 	e.Static("/viewer", "viewer")
-	e.Static("/replay", ci.DirMatch)
+	e.Static("/replay", ci.GetDirMatches())
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":" + port))
 }

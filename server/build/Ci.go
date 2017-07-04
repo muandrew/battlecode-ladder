@@ -16,7 +16,7 @@ type Ci struct {
 
 	dirBot    string
 	dirData   string
-	DirMatch  string
+	dirMatch  string
 	dirUser   string
 	dirWorker string
 }
@@ -96,7 +96,7 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 		err := utils.RunShell("sh", []string{
 			"scripts/run-match.sh",
 			c.dirBot,
-			c.DirMatch,
+			c.dirMatch,
 			c.dirWorker,
 			strconv.Itoa(workerId),
 			match.Uuid,
@@ -119,8 +119,12 @@ func (c Ci) Close() {
 	c.pool.Close()
 }
 
-func (c Ci) GetBotDir() string {
+func (c Ci) GetDirBots() string {
 	return c.dirBot
+}
+
+func (c Ci) GetDirMatches() string {
+	return c.dirMatch
 }
 
 func SetUpWorkspace(workerDir string, workerId int) {

@@ -18,7 +18,7 @@ import (
 var db data.Db
 
 func main() {
-	err := godotenv.Load("secrets.sh")
+	err := godotenv.Load("bcl-env.sh")
 	utils.Initialize("BCL_")
 	if err != nil {
 		log.Fatalf("Error loading .env file; err: %q", err)

@@ -36,17 +36,16 @@ func main() {
 	rootAddress := utils.GetRequiredEnv("ROOT_ADDRESS", onFail)
 	port := utils.GetRequiredEnv("PORT", onFail)
 	if !initSuccess {
-		fmt.Println("Init failed.")
-		return
+		log.Fatalf("Init failed.")
 	}
 	authentication := auth.NewAuth(db, jwtSecret)
 
 	e := echo.New()
 	_, err = oauth.Init(e, rootAddress, "/", authentication)
 	if err != nil {
-		return
+		log.Fatalf("Failed to init oauth: %s", err)
 	}
-	//todo error handling
+
 	ci, err := build.NewCi(db)
 	if err != nil {
 		log.Fatalf("Failed to init Ci: %s", err)

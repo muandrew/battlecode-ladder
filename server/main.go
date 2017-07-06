@@ -60,8 +60,8 @@ func main() {
 	r.Use(authentication.AuthMiddleware)
 	r.GET("/", restricted)
 
-	e.Static("/bc17", "viewer/bc17")
-	e.Static("/viewer", "viewer")
+	e.Static("/bc17", "viewer/bc17/res")
+	e.Static("/viewer/bc17", "viewer/bc17")
 	e.Static("/replay", ci.GetDirMatches())
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":" + port))

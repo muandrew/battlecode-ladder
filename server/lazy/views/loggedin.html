@@ -30,7 +30,7 @@
     {{range .latest_matches}}
         bots: {{range .Bots}} {{.Package}} {{end}}<br>
         time: {{.Status}}<br>
-        <a href="/viewer/?{{.Uuid}}">replay</a><br>
+        <a href="/viewer/{{.Competition}}/?{{.Uuid}}">replay</a><br>
     {{end}}
 </body>
 </html>

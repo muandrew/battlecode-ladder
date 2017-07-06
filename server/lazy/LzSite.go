@@ -10,6 +10,7 @@ import (
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
 	"github.com/muandrew/battlecode-ladder/utils"
+	"encoding/json"
 )
 
 type LzSite struct {
@@ -91,8 +92,15 @@ func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 			"latest_matches": matches,
 			"length":         length,
 		}
+
+		//return debugResponse(c, model)
 		return c.Render(http.StatusOK, "loggedin", model)
 	}
+}
+
+func debugResponse(c echo.Context, model interface{}) error {
+	raw, _ := json.Marshal(model)
+	return c.Render(http.StatusOK, "dev_debug", string(raw))
 }
 
 func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
@@ -128,12 +136,12 @@ func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) erro
 
 		ownBot := db.GetBot(botUuid)
 		oppBot := db.GetBot(oppUuid)
+		err := ci.RunMatch(ownBot, oppBot)
 
-		if ownBot != nil && oppBot != nil {
-			ci.RunMatch(ownBot, oppBot)
-			return c.Render(http.StatusOK, "challenged", nil)
+		if err != nil {
+			return c.Render(http.StatusOK, "challenge_failed", err)
 		} else {
-			return c.Render(http.StatusOK, "challenge_failed", nil)
+			return c.Render(http.StatusOK, "challenged", nil)
 		}
 	}
 }

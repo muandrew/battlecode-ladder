@@ -5,9 +5,10 @@ import (
 )
 
 type Match struct {
-	Uuid     string
-	BotUuids []string
-	Status   *models.BuildStatus
+	Uuid        string
+	BotUuids    []string
+	Status      *models.BuildStatus
+	Competition string
 }
 
 func CreateMatch(match *models.Match) *Match {
@@ -16,8 +17,9 @@ func CreateMatch(match *models.Match) *Match {
 		uuids[i] = bot.Uuid
 	}
 	return &Match{
-		Uuid:     match.Uuid,
-		BotUuids: uuids,
-		Status:   match.Status,
+		match.Uuid,
+		uuids,
+		match.Status,
+		match.Competition,
 	}
 }

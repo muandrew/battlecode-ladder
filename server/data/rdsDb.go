@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"github.com/muandrew/battlecode-ladder/data/rds"
+	"errors"
 )
 
 const (
@@ -78,7 +79,10 @@ func (db RdsDb) GetUser(uuid string) *models.User {
 
 func (db RdsDb) GetBot(uuid string) *models.Bot {
 	model := &models.Bot{}
-	db.getModelForKey(model, getBotKeyWithUuid(uuid))
+	err := db.getModelForKey(model, getBotKeyWithUuid(uuid))
+	if err != nil {
+		return nil
+	}
 	return model
 }
 
@@ -166,11 +170,8 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 		if err != nil {
 			return nil, 0
 		}
-		match := &models.Match{}
-		match.Uuid = rdsMatch.Uuid
-		match.Status = rdsMatch.Status
-		bots := make([]*models.Bot, len(rdsMatch.BotUuids))
 
+		bots := make([]*models.Bot, len(rdsMatch.BotUuids))
 		for j, botUuid := range rdsMatch.BotUuids {
 			bot := &models.Bot{}
 			err = getModel(c, getBotKeyWithUuid(botUuid), bot)
@@ -179,8 +180,13 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 			}
 			bots[j] = bot
 		}
-
-		match.Bots = bots
+		//noinspection GoStructInitializationWithoutFieldNames
+		match := &models.Match{
+			rdsMatch.Uuid,
+			bots,
+			rdsMatch.Status,
+			rdsMatch.Competition,
+		}
 		matches[i] = match
 	}
 	return matches, length
@@ -195,7 +201,7 @@ func getModel(c redis.Conn, key string, model interface{}) error {
 	if bin != nil {
 		return json.Unmarshal(bin.([]byte), model)
 	}
-	return nil
+	return errors.New(fmt.Sprintf("Couldn't find model for key: %q", key))
 }
 
 func sendModel(c redis.Conn, action string, key string, model interface{}) error {

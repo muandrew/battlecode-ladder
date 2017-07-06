@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"errors"
 )
 
 const (
@@ -117,8 +118,14 @@ func (c Ci) SubmitJob(bot *models.Bot) {
 	}, nil)
 }
 
-func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
-	match := models.CreateMatch([]*models.Bot{bot1, bot2})
+func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
+	if bot1 == nil || bot2 == nil {
+		return errors.New("Couldn't find two bots to play.")
+	}
+	match, err := models.CreateMatch([]*models.Bot{bot1, bot2})
+	if err != nil {
+		return err
+	}
 	match.Status.SetQueued()
 	c.db.CreateMatch(match)
 	c.pool.SendWorkAsync(func(workerId int) {
@@ -144,6 +151,7 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 		match.Status.SetSuccess()
 		c.db.UpdateMatch(match)
 	}, nil)
+	return nil
 }
 
 func (c Ci) Close() {

@@ -1,46 +1,46 @@
 package oauth
 
 import (
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"strings"
 	"errors"
-	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/labstack/echo"
-	"net/http"
-	"golang.org/x/net/context"
+	"github.com/muandrew/battlecode-ladder/auth"
 	gmodels "github.com/muandrew/battlecode-ladder/google/models"
 	"github.com/muandrew/battlecode-ladder/models"
-	"github.com/muandrew/battlecode-ladder/auth"
+	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/satori/go.uuid"
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"net/http"
+	"strings"
 )
 
 const (
-	oauthID = "_ID"
+	oauthID     = "_ID"
 	oauthSecret = "_SECRET"
 )
 
 type OAMap map[string]*OAConfig
 
-type getUserI func (c echo.Context, authp *auth.Auth, accessToken string) (*models.User, error)
+type getUserI func(c echo.Context, authp *auth.Auth, accessToken string) (*models.User, error)
 
 type OAConfig struct {
-	App    string
-	Config *oauth2.Config
+	App     string
+	Config  *oauth2.Config
 	GetUser getUserI
 }
 
 func NewOAConfig(redirectPath string, app string, getUser getUserI, scopes []string, endpoint oauth2.Endpoint, fail func()) *OAConfig {
 	return &OAConfig{
-		App:app,
+		App:     app,
 		GetUser: getUser,
-		Config:  &oauth2.Config{
+		Config: &oauth2.Config{
 			RedirectURL:  redirectPath + app + "/",
 			ClientID:     getKeyForApp(oauthID, app, fail),
 			ClientSecret: getKeyForApp(oauthSecret, app, fail),
 			Scopes:       scopes,
 			Endpoint:     endpoint,
-	}}
+		}}
 }
 
 func Init(e *echo.Echo, address string, prefix string, authp *auth.Auth) (OAMap, error) {
@@ -59,11 +59,13 @@ func Init(e *echo.Echo, address string, prefix string, authp *auth.Auth) (OAMap,
 			func(c echo.Context, authp *auth.Auth, accessToken string) (*models.User, error) {
 				response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + accessToken)
 				if err != nil {
-					return nil , err
+					return nil, err
 				}
 				info := new(gmodels.UserInfo)
 				utils.ReadBody(response, info)
-				if err != nil {return nil, err}
+				if err != nil {
+					return nil, err
+				}
 				usr := authp.GetUserWithApp(c, "google", info.ID, func() *models.User {
 					mUser, _ := models.CreateUser(info.Name)
 					return mUser
@@ -84,8 +86,8 @@ func Init(e *echo.Echo, address string, prefix string, authp *auth.Auth) (OAMap,
 		m[item.App] = item
 	}
 	if success {
-		e.GET(prefix + "login/:app/", getGetLogin(m))
-		e.GET(prefix + "callback/:app/", getGetCallback(m, authp))
+		e.GET(prefix+"login/:app/", getGetLogin(m))
+		e.GET(prefix+"callback/:app/", getGetCallback(m, authp))
 		return m, nil
 	} else {
 		return nil, errors.New("Initialization Failed.")
@@ -93,7 +95,7 @@ func Init(e *echo.Echo, address string, prefix string, authp *auth.Auth) (OAMap,
 }
 
 func getGetLogin(oamap OAMap) func(echo.Context) error {
-	return func (c echo.Context) error {
+	return func(c echo.Context) error {
 		app := c.Param("app")
 		config := oamap[app]
 		state := uuid.NewV4().String()
@@ -102,7 +104,7 @@ func getGetLogin(oamap OAMap) func(echo.Context) error {
 }
 
 func getGetCallback(oamap OAMap, authp *auth.Auth) func(echo.Context) error {
-	return func (c echo.Context) error {
+	return func(c echo.Context) error {
 		app := c.Param("app")
 		config := oamap[app]
 		//todo state:= c.Param("state")
@@ -122,5 +124,5 @@ func getGetCallback(oamap OAMap, authp *auth.Auth) func(echo.Context) error {
 }
 
 func getKeyForApp(key string, app string, fail func()) string {
-	return utils.GetRequiredEnv("OAUTH_" + strings.ToUpper(app) + key, fail)
+	return utils.GetRequiredEnv("OAUTH_"+strings.ToUpper(app)+key, fail)
 }

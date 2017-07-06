@@ -8,13 +8,13 @@ const (
 
 func TestRegexWhitelistFilter(t *testing.T) {
 	cases := []struct {
-		sin, rin string
+		sin, rin     string
 		wants, wante bool
 	}{
-		{"aA.bc_d", RegexFilterPackage, true, false },
-		{"aA.bc_d"+script, RegexFilterPackage, false, true },
+		{"aA.bc_d", RegexFilterPackage, true, false},
+		{"aA.bc_d" + script, RegexFilterPackage, false, true},
 		{"Hello, 世界.'", RegexFilterText, true, false},
-		{"Hello, 世界.'"+script, RegexFilterText, false, true},
+		{"Hello, 世界.'" + script, RegexFilterText, false, true},
 	}
 	for _, c := range cases {
 		got, err := NewUserString(c.sin, 100, RegexBlacklist(c.rin))

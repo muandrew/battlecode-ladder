@@ -5,16 +5,16 @@ import (
 )
 
 type MemDb struct {
-	apps map[string]string
+	apps  map[string]string
 	users map[string]*models.User
 }
 
 func NewMemDb() *MemDb {
-	return &MemDb{make(map[string]string),make(map[string]*models.User) }
+	return &MemDb{make(map[string]string), make(map[string]*models.User)}
 }
 
 func (db MemDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
-	appKey := app+":"+appUuid
+	appKey := app + ":" + appUuid
 	uuid := db.apps[appKey]
 	if uuid == "" {
 		user := generateUser()
@@ -35,7 +35,7 @@ func (db MemDb) GetAllUsers() []*models.User {
 	allUsers := make([]*models.User, len(db.users))
 
 	i := 0
-	for _,v := range db.users {
+	for _, v := range db.users {
 		allUsers[i] = v
 		i++
 	}

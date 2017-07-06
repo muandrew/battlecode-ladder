@@ -3,16 +3,15 @@ package main
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder/oauth"
-	"fmt"
-	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/joho/godotenv"
-	"log"
+	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/auth"
-	"github.com/muandrew/battlecode-ladder/lazy"
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
+	"github.com/muandrew/battlecode-ladder/lazy"
+	"github.com/muandrew/battlecode-ladder/oauth"
+	"github.com/muandrew/battlecode-ladder/utils"
+	"log"
 )
 
 var db data.Db

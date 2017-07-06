@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"os"
 	"fmt"
+	"os"
 )
 
 var prefix = ""
@@ -32,5 +32,5 @@ func GetRequiredEnv(key string, fail func()) string {
 }
 
 func IsDev() bool {
-	return  isDev
+	return isDev
 }

@@ -1,16 +1,16 @@
 package utils
 
 import (
-	"net/http"
-	"encoding/json"
-	"io/ioutil"
-	"fmt"
-	"os/exec"
-	"os"
 	"bufio"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"os/exec"
 )
 
-func ExitOnDev(){
+func ExitOnDev() {
 	if IsDev() {
 		os.Exit(1)
 	}

@@ -10,14 +10,16 @@ const (
 	UserMaxName = 140
 )
 
-type User struct{
+type User struct {
 	Uuid string
 	Name UserString
 }
 
 func CreateUser(name string) (*User, error) {
 	uName, err := NewUserString(name, UserMaxName)
-	if err != nil {return nil, err}
+	if err != nil {
+		return nil, err
+	}
 	return &User{
 		uuid.NewV4().String(),
 		uName,

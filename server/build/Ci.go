@@ -1,17 +1,17 @@
 package build
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jeffail/tunny"
+	"github.com/muandrew/battlecode-ladder/data"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/utils"
-	"github.com/muandrew/battlecode-ladder/data"
-	"strconv"
-	"os"
-	"path/filepath"
-	"fmt"
 	"io"
 	"mime/multipart"
-	"errors"
+	"os"
+	"path/filepath"
+	"strconv"
 )
 
 const (

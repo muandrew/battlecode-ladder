@@ -1,13 +1,13 @@
 package data
 
 import (
-	"github.com/muandrew/battlecode-ladder/models"
-	"github.com/garyburd/redigo/redis"
-	"time"
-	"fmt"
 	"encoding/json"
-	"github.com/muandrew/battlecode-ladder/data/rds"
 	"errors"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+	"github.com/muandrew/battlecode-ladder/data/rds"
+	"github.com/muandrew/battlecode-ladder/models"
+	"time"
 )
 
 const (
@@ -162,7 +162,6 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 		return nil, 0
 	}
 	matches := make([]*models.Match, len(matchUuids))
-
 
 	for i, matchUuid := range matchUuids {
 		rdsMatch := &rds.Match{}

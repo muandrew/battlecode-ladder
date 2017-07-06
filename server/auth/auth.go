@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder/models"
 	jwt "github.com/dgrijalva/jwt-go"
-	"time"
-	"net/http"
+	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/muandrew/battlecode-ladder/data"
+	"github.com/muandrew/battlecode-ladder/models"
+	"net/http"
+	"time"
 )
 
 const jwtCookieName = "xbclauth"
@@ -24,16 +24,16 @@ func NewAuth(db data.Db, jwtSecret []byte) *Auth {
 	config.TokenLookup = "cookie:" + jwtCookieName
 	authMiddleware := middleware.JWTWithConfig(config)
 	return &Auth{
-		db:db,
-		jwtSecret:jwtSecret,
-		AuthMiddleware:authMiddleware,
+		db:             db,
+		jwtSecret:      jwtSecret,
+		AuthMiddleware: authMiddleware,
 	}
 }
 
-func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) *models.User{
+func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) *models.User {
 	user := auth.db.GetUserWithApp(app, appUuid, setupUser)
 	auth.setJwtInCookie(c, user)
-	return  user
+	return user
 }
 
 func (auth Auth) setJwtInCookie(c echo.Context, user *models.User) string {

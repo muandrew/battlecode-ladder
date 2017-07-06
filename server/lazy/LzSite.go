@@ -6,25 +6,23 @@ import (
 	"html/template"
 	"net/http"
 	"github.com/muandrew/battlecode-ladder/auth"
-	"os"
-	"fmt"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
 	"github.com/muandrew/battlecode-ladder/utils"
 )
 
-type Template struct {
+type LzSite struct {
 	templates *template.Template
 }
 
-func NewInstance() *Template {
-	return &Template{
+func NewInstance() *LzSite {
+	return &LzSite{
 		templates: template.Must(template.ParseGlob("lazy/views/*.html")),
 	}
 }
 
-func (t *Template) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
+func (t *LzSite) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	e.Renderer = t
 	g := e.Group("/lazy")
 	g.Static("/static", "lazy/static")
@@ -44,7 +42,7 @@ func (t *Template) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	}
 }
 
-func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *LzSite) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
@@ -109,35 +107,17 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 			c.FormValue("package"),
 			c.FormValue("name"),
 			c.FormValue("description"),
+			models.BotCompetitionBC17,
 		)
 		if err != nil {
 			return err
 		}
 
-		src, err := file.Open()
+		err = ci.UploadBotSource(file, bot)
 		if err != nil {
 			return err
 		}
-		defer src.Close()
-
-		// Destination
-		prefix := ci.GetDirBots() + "/" + bot.Uuid
-		os.MkdirAll(prefix, 0755)
-		dst, err := os.Create(prefix + "/source.jar")
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		defer dst.Close()
-
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			return err
-		}
-
-		//todo respond to error
 		ci.SubmitJob(bot)
-
 		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
 	}
 }

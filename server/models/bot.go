@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	BotMaxName        = 60
-	BotMaxDescription = 140
-	BotMaxPackage     = 60
+	BotMaxName         = 60
+	BotMaxDescription  = 140
+	BotMaxPackage      = 60
+	BotCompetitionBC17 = "bc17"
 )
 
 type Bot struct {
@@ -17,9 +18,10 @@ type Bot struct {
 	Name        UserString
 	Description UserString
 	Status      *BuildStatus
+	Competition string
 }
 
-func CreateBot(owner *Competitor, pkg string, name string, description string) (*Bot, error) {
+func CreateBot(owner *Competitor, pkg string, name string, description string, competition string) (*Bot, error) {
 	uPkg, err := NewUserString(pkg, BotMaxPackage, RegexBlacklist(RegexFilterPackage))
 	if err != nil {
 		return nil, err
@@ -39,6 +41,7 @@ func CreateBot(owner *Competitor, pkg string, name string, description string) (
 		uName,
 		uDesc,
 		NewBuildStatus(),
+		competition,
 	}
 	return bot, nil
 }

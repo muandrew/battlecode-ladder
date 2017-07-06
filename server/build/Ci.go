@@ -8,6 +8,13 @@ import (
 	"strconv"
 	"os"
 	"path/filepath"
+	"fmt"
+	"io"
+	"mime/multipart"
+)
+
+const (
+	folderPermission = 0755
 )
 
 type Ci struct {
@@ -30,7 +37,7 @@ func getAndSetupDir(key string, fallback string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	os.MkdirAll(dir, 0755)
+	os.MkdirAll(dir, folderPermission)
 	return dir, nil
 }
 
@@ -68,6 +75,30 @@ func NewCi(db data.Db) (*Ci, error) {
 		dirUser,
 		dirWorker,
 	}, nil
+}
+
+func (c Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Destination
+	prefix := c.dirBot + "/" + bot.Uuid
+	os.MkdirAll(prefix, folderPermission)
+	dst, err := os.Create(prefix + "/source.jar")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer dst.Close()
+
+	// Copy
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c Ci) SubmitJob(bot *models.Bot) {
@@ -117,10 +148,6 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) {
 
 func (c Ci) Close() {
 	c.pool.Close()
-}
-
-func (c Ci) GetDirBots() string {
-	return c.dirBot
 }
 
 func (c Ci) GetDirMatches() string {

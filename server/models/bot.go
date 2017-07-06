@@ -7,6 +7,7 @@ import (
 const (
 	BotMaxName         = 60
 	BotMaxDescription  = 140
+	BotMaxNote         = 140
 	BotMaxPackage      = 60
 	BotCompetitionBC17 = "bc17"
 )
@@ -15,22 +16,17 @@ type Bot struct {
 	Uuid        string
 	Owner       *Competitor
 	Package     UserString
-	Name        UserString
-	Description UserString
+	Note        UserString
 	Status      *BuildStatus
 	Competition string
 }
 
-func CreateBot(owner *Competitor, pkg string, name string, description string, competition string) (*Bot, error) {
+func CreateBot(owner *Competitor, pkg string, note string, competition string) (*Bot, error) {
 	uPkg, err := NewUserString(pkg, BotMaxPackage, RegexBlacklist(RegexFilterPackage))
 	if err != nil {
 		return nil, err
 	}
-	uName, err := NewUserString(name, BotMaxName, RegexBlacklist(RegexFilterText))
-	if err != nil {
-		return nil, err
-	}
-	uDesc, err := NewUserString(description, BotMaxDescription, RegexBlacklist(RegexFilterText))
+	uNote, err := NewUserString(note, BotMaxNote, RegexBlacklist(RegexFilterText))
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +34,7 @@ func CreateBot(owner *Competitor, pkg string, name string, description string, c
 		uuid.NewV4().String(),
 		owner,
 		uPkg,
-		uName,
-		uDesc,
+		uNote,
 		NewBuildStatus(),
 		competition,
 	}

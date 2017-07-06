@@ -105,8 +105,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 		bot, err := models.CreateBot(
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),
 			c.FormValue("package"),
-			c.FormValue("name"),
-			c.FormValue("description"),
+			c.FormValue("note"),
 			models.BotCompetitionBC17,
 		)
 		if err != nil {

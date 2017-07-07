@@ -12,10 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 const (
 	folderPermission = 0755
+	forbiddenCharacters = "~$"
 )
 
 type Ci struct {
@@ -33,6 +35,10 @@ func getAndSetupDir(key string, fallback string) (string, error) {
 	dir := utils.GetEnv(key)
 	if dir == "" {
 		dir = fallback
+	} else if strings.ContainsAny(dir, forbiddenCharacters) {
+		return "", errors.New(fmt.Sprintf("Only relative and absolute pathing are allowed," +
+			" and if you are using (%s) in your directory structure, consider better names.",
+			forbiddenCharacters))
 	}
 	dir, err := filepath.Abs(dir)
 	if err != nil {

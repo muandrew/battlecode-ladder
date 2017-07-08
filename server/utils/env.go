@@ -31,6 +31,12 @@ func GetRequiredEnv(key string, fail func()) string {
 	return value
 }
 
+func GetRequiredEnvFatal(key string) string {
+	return GetRequiredEnv(key, func() {
+		os.Exit(1)
+	})
+}
+
 func IsDev() bool {
 	return isDev
 }

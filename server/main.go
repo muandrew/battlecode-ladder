@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/auth"
 	"github.com/muandrew/battlecode-ladder/build"
@@ -17,18 +16,14 @@ import (
 var db data.Db
 
 func main() {
-	err := godotenv.Load("bcl-env.sh")
-	utils.Initialize("BCL_")
-	if err != nil {
-		log.Fatalf("Error loading .env file; err: %q", err)
-	}
+	utils.InitMainEnv()
 
 	initSuccess := true
 	onFail := func() {
 		initSuccess = false
 	}
 	jwtSecret := []byte(utils.GetRequiredEnv("JWT_SECRET", onFail))
-	db, err = data.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
+	db, err := data.NewRdsDb(utils.GetRequiredEnv("REDIS_ADDRESS", onFail))
 	if err != nil {
 		log.Fatalf("Failed to init redis: %s", err)
 	}

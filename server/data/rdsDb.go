@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	addSet   = "SET"
+	AddSet   = "SET"
 	addLpush = "LPUSH"
 )
 
@@ -90,7 +90,7 @@ func (db RdsDb) CreateBot(model *models.Bot) error {
 	c := db.pool.Get()
 	defer c.Close()
 
-	err := sendModel(c, addSet, getBotKey(model), model)
+	err := SendModel(c, AddSet, getBotKey(model), model)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (db RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot,
 
 	for i, botUuid := range botUuids {
 		bot := &models.Bot{}
-		err = getModel(c, getBotKeyWithUuid(botUuid), bot)
+		err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
 		if err != nil {
 			return nil, 0
 		}
@@ -133,7 +133,7 @@ func (db RdsDb) CreateMatch(model *models.Match) error {
 	c := db.pool.Get()
 	defer c.Close()
 
-	err := sendModel(c, addSet, getMatchKey(model), rds.CreateMatch(model))
+	err := SendModel(c, AddSet, getMatchKey(model), rds.CreateMatch(model))
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 
 	for i, matchUuid := range matchUuids {
 		rdsMatch := &rds.Match{}
-		err = getModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
+		err = GetModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
 		if err != nil {
 			return nil, 0
 		}
@@ -173,7 +173,7 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 		bots := make([]*models.Bot, len(rdsMatch.BotUuids))
 		for j, botUuid := range rdsMatch.BotUuids {
 			bot := &models.Bot{}
-			err = getModel(c, getBotKeyWithUuid(botUuid), bot)
+			err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
 			if err != nil {
 				return nil, 0
 			}
@@ -192,7 +192,7 @@ func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.M
 }
 
 //utility
-func getModel(c redis.Conn, key string, model interface{}) error {
+func GetModel(c redis.Conn, key string, model interface{}) error {
 	bin, err := c.Do("GET", key)
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func getModel(c redis.Conn, key string, model interface{}) error {
 	return errors.New(fmt.Sprintf("Couldn't find model for key: %q", key))
 }
 
-func sendModel(c redis.Conn, action string, key string, model interface{}) error {
+func SendModel(c redis.Conn, action string, key string, model interface{}) error {
 	bin, err := json.Marshal(model)
 	if err != nil {
 		return err
@@ -222,13 +222,13 @@ func flushAndReceive(c redis.Conn) (interface{}, error) {
 func (db RdsDb) getModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
-	return getModel(c, key, model)
+	return GetModel(c, key, model)
 }
 
 func (db RdsDb) setModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
-	err := sendModel(c, addSet, key, model)
+	err := SendModel(c, AddSet, key, model)
 	if err != nil {
 		return err
 	}
@@ -256,18 +256,48 @@ func getBotKeyWithUuid(uuid string) string {
 	return "bot:" + uuid
 }
 
+func (db RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
+	c := db.pool.Get()
+	defer c.Close()
+	fmt.Printf("Scanning for %q\n", pattern)
+	index := 0
+	for true {
+		reply, err := redis.Values(c.Do("scan", index, "match", pattern))
+		if err != nil {
+			return err
+		}
+		index, err = redis.Int(reply[0], nil)
+		if err != nil {
+			return err
+		}
+		keys, err := redis.Strings(reply[1], nil)
+		if err != nil {
+			return err
+		}
+		for _, key := range keys {
+			run(c, key)
+		}
+		if index == 0 {
+			fmt.Printf("done\n")
+			break;
+		} else {
+			fmt.Printf("idx %d complete.\n", index)
+		}
+	}
+	return nil
+}
+
 //end utility
 
 //deprecate
 func (db RdsDb) pushModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
-	err := sendModel(c, addLpush, key, model)
+	err := SendModel(c, addLpush, key, model)
 	if err != nil {
 		return err
 	}
 	_, err = flushAndReceive(c)
 	return err
 }
-
 //end deprecate

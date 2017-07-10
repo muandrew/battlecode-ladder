@@ -137,10 +137,15 @@ func (db RdsDb) CreateMatch(model *models.Match) error {
 	if err != nil {
 		return err
 	}
+	done := make(map[string]bool)
 	for _, bot := range model.Bots {
-		err := c.Send(addLpush, getPrefix(bot.Owner)+":match-list", model.Uuid)
-		if err != nil {
-			return err
+		ownerPrefix := getPrefix(bot.Owner)
+		if !done[ownerPrefix] {
+			err := c.Send(addLpush, ownerPrefix+":match-list", model.Uuid)
+			if err != nil {
+				return err
+			}
+			done[ownerPrefix] = true
 		}
 	}
 	_, err = flushAndReceive(c)
@@ -300,4 +305,5 @@ func (db RdsDb) pushModelForKey(model interface{}, key string) error {
 	_, err = flushAndReceive(c)
 	return err
 }
+
 //end deprecate

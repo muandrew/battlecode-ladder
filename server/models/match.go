@@ -12,15 +12,6 @@ type Match struct {
 	Competition string
 }
 
-func NewMatch(uuid string, bots []*Bot, status *BuildStatus, competition string) *Match {
-	return &Match{
-		uuid,
-		bots,
-		status,
-		competition,
-	}
-}
-
 func CreateMatch(bots []*Bot) (*Match, error) {
 	length := len(bots)
 	if length < 2 {

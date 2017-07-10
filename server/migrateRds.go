@@ -6,13 +6,14 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/labstack/gommon/log"
+	"github.com/muandrew/battlecode-ladder/data/rds"
 )
 
 func main() {
 	utils.InitMainEnv()
 	db, _ := data.NewRdsDb(utils.GetRequiredEnvFatal("REDIS_ADDRESS"))
-	err := db.Scan("match:*", func (c redis.Conn, key string) {
-		match := &models.Match{}
+	err := db.Scan("match:*", func(c redis.Conn, key string) {
+		match := &rds.Match{}
 		data.GetModel(c, key, match)
 		if match.Competition == "" {
 			match.Competition = models.BotCompetitionBC17
@@ -22,7 +23,7 @@ func main() {
 		c.Receive()
 	})
 	logFatal(err)
-	err = db.Scan("bot:*", func (c redis.Conn, key string) {
+	err = db.Scan("bot:*", func(c redis.Conn, key string) {
 		bot := &models.Bot{}
 		data.GetModel(c, key, bot)
 		if bot.Competition == "" {

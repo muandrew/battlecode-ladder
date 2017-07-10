@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/satori/go.uuid"
+	"errors"
 )
 
 const (
@@ -22,6 +23,9 @@ type Bot struct {
 }
 
 func CreateBot(owner *Competitor, pkg string, note string, competition string) (*Bot, error) {
+	if pkg == "" {
+		return nil, errors.New("We need a package to run your bot.")
+	}
 	uPkg, err := NewUserString(pkg, BotMaxPackage, RegexBlacklist(RegexFilterPackage))
 	if err != nil {
 		return nil, err

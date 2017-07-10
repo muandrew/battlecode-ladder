@@ -17,6 +17,11 @@ type LzSite struct {
 	templates *template.Template
 }
 
+const (
+	failedUpload    = "Upload failed :/"
+	failedChallenge = "Challenge failed T.T"
+)
+
 func NewInstance() *LzSite {
 	return &LzSite{
 		templates: template.Must(template.ParseGlob("lazy/views/*.html")),
@@ -108,7 +113,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 		uuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")
 		if err != nil {
-			return err
+			return renderFailure(c, failedUpload, err)
 		}
 		bot, err := models.CreateBot(
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),
@@ -117,12 +122,12 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 			models.BotCompetitionBC17,
 		)
 		if err != nil {
-			return err
+			return renderFailure(c, failedUpload, err)
 		}
 
 		err = ci.UploadBotSource(file, bot)
 		if err != nil {
-			return err
+			return renderFailure(c, failedUpload, err)
 		}
 		ci.SubmitJob(bot)
 		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
@@ -139,9 +144,17 @@ func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) erro
 		err := ci.RunMatch(ownBot, oppBot)
 
 		if err != nil {
-			return c.Render(http.StatusOK, "challenge_failed", err)
+			return renderFailure(c, failedChallenge, err)
 		} else {
 			return c.Render(http.StatusOK, "challenged", nil)
 		}
 	}
+}
+
+func renderFailure(context echo.Context, title string, err error) error {
+	model := map[string]interface{}{
+		"title": title,
+		"error": err,
+	}
+	return context.Render(http.StatusOK, "failure", model)
 }

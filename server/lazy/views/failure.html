@@ -1,11 +1,11 @@
-{{define "challenge_failed"}}
+{{define "failure"}}
 <!DOCTYPE html>
 <html lang="en">
 {{template "header"}}
 <body>
-    Challenge failed T.T<br>
+    {{.title}}<br>
     <br>
-    {{.}}<br>
+    {{.error}}<br>
     <br>
     <a href="/lazy/loggedin/">Continue</a>
 </body>

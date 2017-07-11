@@ -242,7 +242,7 @@ func (db RdsDb) setModelForKey(model interface{}, key string) error {
 }
 
 func getPrefix(c *models.Competitor) string {
-	return c.Type + ":" + c.Uuid
+	return c.Type.String() + ":" + c.Uuid
 }
 
 func getMatchKey(m *models.Match) string {

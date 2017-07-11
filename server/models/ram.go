@@ -19,7 +19,8 @@ const (
 	RamAccessNone = ramAccessTier(0)
 	RamAccessR    = ramAccessTier(1)
 	RamAccessRW   = ramAccessTier(2)
-	accessError   = utils.Error("Insufficient permission.")
+	errorAccess   = utils.Error("Insufficient permission.")
+	errorArgument = utils.Error("Incorrect Argument.")
 )
 
 func CreateRAM(owner *Competitor) *RAM {
@@ -39,7 +40,7 @@ func (r *RAM) WriteAllowed(competitor *Competitor) bool {
 
 func (r *RAM) SetPublic(actor *Competitor, public bool) error {
 	if !r.WriteAllowed(actor) {
-		return accessError
+		return errorAccess
 	}
 	r.readPublic = public
 	return nil
@@ -47,13 +48,27 @@ func (r *RAM) SetPublic(actor *Competitor, public bool) error {
 
 func (r *RAM) SetAccess(actor *Competitor, competitor *Competitor, access ramAccessTier) error {
 	if !r.WriteAllowed(actor) {
-		return accessError
+		return errorAccess
+	}
+	if competitor == nil {
+		return errorArgument
 	}
 	if access == RamAccessNone {
 		delete(r.whitelist, competitor.AsValue())
 	} else {
 		r.whitelist[competitor.AsValue()] = access
 	}
+	return nil
+}
+
+func (r *RAM) TransferOwnership(actor *Competitor, competitor *Competitor) error {
+	if !actor.Equals(r.owner) {
+		return errorAccess
+	}
+	if competitor == nil {
+		return errorArgument
+	}
+	r.owner = competitor
 	return nil
 }
 

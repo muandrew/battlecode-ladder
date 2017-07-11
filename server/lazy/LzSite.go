@@ -37,7 +37,8 @@ func (t *LzSite) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	r := g.Group("/loggedin")
 	r.Use(a.AuthMiddleware)
 	r.GET("/", wrapGetLoggedIn(db))
-	r.POST("/upload/", wrapPostUpload(c))
+	r.POST("/bot/upload/", wrapPostUpload(c))
+	r.POST("/map/upload/", wrapPostMapUpload(c))
 	r.POST("/challenge/", wrapPostChallenge(db, c))
 
 	if utils.IsDev() {
@@ -98,11 +99,11 @@ func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 			"length":         length,
 		}
 
-		//return debugResponse(c, model)
 		return c.Render(http.StatusOK, "loggedin", model)
 	}
 }
 
+//noinspection GoUnusedFunction
 func debugResponse(c echo.Context, model interface{}) error {
 	raw, _ := json.Marshal(model)
 	return c.Render(http.StatusOK, "dev_debug", string(raw))
@@ -134,7 +135,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 	}
 }
 
-func wrapPostUploadMap(ci *build.Ci) func(context echo.Context) error {
+func wrapPostMapUpload(ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
 		uuid := auth.GetUuid(c)
 		file, err := c.FormFile("file")

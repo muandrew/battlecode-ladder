@@ -6,20 +6,29 @@
     Hello {{.name}}<br>
     Your Uuid is {{.uuid}}<br>
     <br>
-    <form action="/lazy/loggedin/upload/" method="post" enctype="multipart/form-data">
+    <form action="/lazy/loggedin/bot/upload/" method="post" enctype="multipart/form-data">
         File: <input type="file" name="file"><br>
         Package: <input type="text" name="package"><br>
         Note: <input type="text" name="note"><br>
         <br>
-        <input type="submit" value="Upload">
+        <input type="submit" value="Upload Bot">
     </form><br>
 
     <form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
         Bot Uuid: <input type="text" name="botUuid"><br>
         Opponent Uuid: <input type="text" name="oppUuid"><br>
         <br>
-        <input type="submit" value="Challenge">
+        <input type="submit" value="Challenge Bot">
     </form><br>
+
+    <form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">
+        File: <input type="file" name="file"><br>
+        Package: <input type="text" name="name"><br>
+        Note: <input type="text" name="description"><br>
+        <br>
+        <input type="submit" value="Upload Map">
+    </form><br>
+
     Latest Bots<br>
     {{range .latest_bots}}
         {{.}}<br>

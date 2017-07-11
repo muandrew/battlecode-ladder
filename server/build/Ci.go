@@ -84,7 +84,7 @@ func NewCi(db data.Db) (*Ci, error) {
 	}, nil
 }
 
-func (c Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
+func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
 	src, err := file.Open()
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func (c Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
 	return nil
 }
 
-func (c Ci) SubmitJob(bot *models.Bot) {
+func (c *Ci) SubmitJob(bot *models.Bot) {
 	bot.Status.SetQueued()
 	c.db.CreateBot(bot)
 	c.pool.SendWorkAsync(func(workerId int) {
@@ -124,7 +124,7 @@ func (c Ci) SubmitJob(bot *models.Bot) {
 	}, nil)
 }
 
-func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
+func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
 	if bot1 == nil || bot2 == nil {
 		return errors.New("Couldn't find two bots to play.")
 	}
@@ -160,11 +160,11 @@ func (c Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
 	return nil
 }
 
-func (c Ci) Close() {
+func (c *Ci) Close() {
 	c.pool.Close()
 }
 
-func (c Ci) GetDirMatches() string {
+func (c *Ci) GetDirMatches() string {
 	return c.dirMatch
 }
 

@@ -9,7 +9,7 @@ type Match struct {
 	Uuid        string
 	Bots        []*Bot
 	Status      *BuildStatus
-	Competition string
+	Competition Competition
 }
 
 func CreateMatch(bots []*Bot) (*Match, error) {

@@ -8,7 +8,7 @@ type Match struct {
 	Uuid        string
 	BotUuids    []string
 	Status      *models.BuildStatus
-	Competition string
+	Competition models.Competition
 }
 
 func CreateMatch(match *models.Match) *Match {

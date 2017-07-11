@@ -119,7 +119,7 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),
 			c.FormValue("package"),
 			c.FormValue("note"),
-			models.BotCompetitionBC17,
+			models.CompetitionBC17,
 		)
 		if err != nil {
 			return renderFailure(c, failedUpload, err)

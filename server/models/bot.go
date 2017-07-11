@@ -10,7 +10,6 @@ const (
 	BotMaxDescription  = 140
 	BotMaxNote         = 140
 	BotMaxPackage      = 60
-	BotCompetitionBC17 = "bc17"
 )
 
 type Bot struct {
@@ -19,10 +18,10 @@ type Bot struct {
 	Package     UserString
 	Note        UserString
 	Status      *BuildStatus
-	Competition string
+	Competition Competition
 }
 
-func CreateBot(owner *Competitor, pkg string, note string, competition string) (*Bot, error) {
+func CreateBot(owner *Competitor, pkg string, note string, competition Competition) (*Bot, error) {
 	if pkg == "" {
 		return nil, errors.New("We need a package to run your bot.")
 	}

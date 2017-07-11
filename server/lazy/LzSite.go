@@ -134,6 +134,31 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 	}
 }
 
+func wrapPostUploadMap(ci *build.Ci) func(context echo.Context) error {
+	return func(c echo.Context) error {
+		uuid := auth.GetUuid(c)
+		file, err := c.FormFile("file")
+		if err != nil {
+			return renderFailure(c, failedUpload, err)
+		}
+		bcMap, err := models.CreateBcMap(
+			models.NewCompetitor(models.CompetitorTypeUser, uuid),
+			models.CompetitionBC17,
+			c.FormValue("name"),
+			c.FormValue("description"),
+		)
+		if err != nil {
+			return renderFailure(c, failedUpload, err)
+		}
+
+		err = ci.UploadMap(file, bcMap)
+		if err != nil {
+			return renderFailure(c, failedUpload, err)
+		}
+		return c.Render(http.StatusOK, "uploaded", auth.GetName(c))
+	}
+}
+
 func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
 		botUuid := c.FormValue("botUuid")

@@ -26,6 +26,7 @@ type Ci struct {
 
 	dirBot    string
 	dirData   string
+	dirMap    string
 	dirMatch  string
 	dirUser   string
 	dirWorker string
@@ -57,6 +58,10 @@ func NewCi(db data.Db) (*Ci, error) {
 	if err != nil {
 		return nil, err
 	}
+	dirMap, err := getAndSetupDir("DIR_MAP", dirData+"/map")
+	if err != nil {
+		return nil, err
+	}
 	dirMatch, err := getAndSetupDir("DIR_MATCH", dirData+"/match")
 	if err != nil {
 		return nil, err
@@ -78,6 +83,7 @@ func NewCi(db data.Db) (*Ci, error) {
 		pool,
 		dirBot,
 		dirData,
+		dirMap,
 		dirMatch,
 		dirUser,
 		dirWorker,
@@ -85,6 +91,24 @@ func NewCi(db data.Db) (*Ci, error) {
 }
 
 func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
+	return c.upload(file,  c.dirBot + "/" + bot.Uuid, "source.jar")
+}
+
+func (c *Ci) UploadMap(file * multipart.FileHeader, bcMap *models.BcMap) error {
+	var ext string
+	switch bcMap.Competition {
+	case models.CompetitionBC17:
+		fallthrough
+	default:
+		ext="map17"
+	}
+	return c.upload(file,  c.dirMap, bcMap.Uuid +"."+ ext)
+}
+
+func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string) error {
+	if file == nil || destDir == "" || destFile == "" {
+		return errors.New("Illegal Argument(s)")
+	}
 	src, err := file.Open()
 	if err != nil {
 		return err
@@ -92,11 +116,9 @@ func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error 
 	defer src.Close()
 
 	// Destination
-	prefix := c.dirBot + "/" + bot.Uuid
-	os.MkdirAll(prefix, folderPermission)
-	dst, err := os.Create(prefix + "/source.jar")
+	os.MkdirAll(destDir, folderPermission)
+	dst, err := os.Create(destDir+ "/" + destFile)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	defer dst.Close()

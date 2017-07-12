@@ -44,6 +44,7 @@ func (db *RdsDb) Ping() error {
 		return nil
 	}
 }
+
 func (db *RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
 	c := db.pool.Get()
 	defer c.Close()
@@ -196,6 +197,49 @@ func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.
 	return matches, length
 }
 
+func (db *RdsDb) CreateBcMap(model *models.BcMap) error {
+	c := db.pool.Get()
+	defer c.Close()
+
+	err := SendModel(c, AddSet, getBcMapKey(model), model)
+	if err != nil {
+		return err
+	}
+	err = c.Send(addLpush, getPrefix(model.Owner)+":map-list", model.Uuid)
+	if err != nil {
+		return err
+	}
+	_, err = flushAndReceive(c)
+	return err
+}
+
+func (db *RdsDb) UpdateBcMap(model *models.BcMap) error {
+	return db.setModelForKey(model, getBcMapKey(model))
+}
+
+func (db *RdsDb) GetBcMaps(userUuid string, page int, pageSize int) ([]*models.BcMap, int) {
+	c := db.pool.Get()
+	defer c.Close()
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":map-list"))
+	start := page * pageSize
+	end := start + pageSize - 1
+	bcMapUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":map-list", start, end))
+	if err != nil {
+		return nil, 0
+	}
+	bcMaps := make([]*models.BcMap, len(bcMapUuids))
+
+	for i, bcMapUuid := range bcMapUuids {
+		bcMap := &models.BcMap{}
+		err = GetModel(c, getBcMapWithUuid(bcMapUuid), bcMap)
+		if err != nil {
+			return nil, 0
+		}
+		bcMaps[i] = bcMap
+	}
+	return bcMaps, length
+}
+
 //utility
 func GetModel(c redis.Conn, key string, model interface{}) error {
 	bin, err := c.Do("GET", key)
@@ -261,6 +305,14 @@ func getBotKeyWithUuid(uuid string) string {
 	return "bot:" + uuid
 }
 
+func getBcMapKey(m *models.BcMap) string {
+	return getBotKeyWithUuid(m.Uuid)
+}
+
+func getBcMapWithUuid(uuid string) string {
+	return "map:" + uuid
+}
+
 func (db *RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
 	c := db.pool.Get()
 	defer c.Close()
@@ -284,7 +336,7 @@ func (db *RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
 		}
 		if index == 0 {
 			fmt.Printf("done\n")
-			break;
+			break
 		} else {
 			fmt.Printf("idx %d complete.\n", index)
 		}

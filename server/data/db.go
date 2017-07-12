@@ -12,4 +12,7 @@ type Db interface {
 	CreateMatch(model *models.Match) error
 	UpdateMatch(model *models.Match) error
 	GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int)
+	CreateBcMap(model *models.BcMap) error
+	UpdateBcMap(model *models.BcMap) error
+	GetBcMaps(userUuid string, page int, pageSize int) ([]*models.BcMap, int)
 }

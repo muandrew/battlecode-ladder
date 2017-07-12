@@ -33,7 +33,7 @@ func NewRdsDb(addr string) (*RdsDb, error) {
 	}
 }
 
-func (db RdsDb) Ping() error {
+func (db *RdsDb) Ping() error {
 	c := db.pool.Get()
 	defer c.Close()
 	response, err := c.Do("PING")
@@ -44,7 +44,7 @@ func (db RdsDb) Ping() error {
 		return nil
 	}
 }
-func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
+func (db *RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
 	c := db.pool.Get()
 	defer c.Close()
 	appKey := "oauth" + ":" + app + ":" + appUuid
@@ -71,13 +71,13 @@ func (db RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *
 	return nil
 }
 
-func (db RdsDb) GetUser(uuid string) *models.User {
+func (db *RdsDb) GetUser(uuid string) *models.User {
 	model := &models.User{}
 	db.getModelForKey(model, "user:"+uuid)
 	return model
 }
 
-func (db RdsDb) GetBot(uuid string) *models.Bot {
+func (db *RdsDb) GetBot(uuid string) *models.Bot {
 	model := &models.Bot{}
 	err := db.getModelForKey(model, getBotKeyWithUuid(uuid))
 	if err != nil {
@@ -86,7 +86,7 @@ func (db RdsDb) GetBot(uuid string) *models.Bot {
 	return model
 }
 
-func (db RdsDb) CreateBot(model *models.Bot) error {
+func (db *RdsDb) CreateBot(model *models.Bot) error {
 	c := db.pool.Get()
 	defer c.Close()
 
@@ -102,11 +102,11 @@ func (db RdsDb) CreateBot(model *models.Bot) error {
 	return err
 }
 
-func (db RdsDb) UpdateBot(model *models.Bot) error {
+func (db *RdsDb) UpdateBot(model *models.Bot) error {
 	return db.setModelForKey(model, getBotKey(model))
 }
 
-func (db RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot, int) {
+func (db *RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot, int) {
 	c := db.pool.Get()
 	defer c.Close()
 	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":bot-list"))
@@ -129,7 +129,7 @@ func (db RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot,
 	return bots, length
 }
 
-func (db RdsDb) CreateMatch(model *models.Match) error {
+func (db *RdsDb) CreateMatch(model *models.Match) error {
 	c := db.pool.Get()
 	defer c.Close()
 
@@ -152,11 +152,11 @@ func (db RdsDb) CreateMatch(model *models.Match) error {
 	return err
 }
 
-func (db RdsDb) UpdateMatch(model *models.Match) error {
+func (db *RdsDb) UpdateMatch(model *models.Match) error {
 	return db.setModelForKey(rds.CreateMatch(model), getMatchKey(model))
 }
 
-func (db RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
+func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
 	c := db.pool.Get()
 	defer c.Close()
 	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":match-list"))
@@ -224,13 +224,13 @@ func flushAndReceive(c redis.Conn) (interface{}, error) {
 	return c.Receive()
 }
 
-func (db RdsDb) getModelForKey(model interface{}, key string) error {
+func (db *RdsDb) getModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
 	return GetModel(c, key, model)
 }
 
-func (db RdsDb) setModelForKey(model interface{}, key string) error {
+func (db *RdsDb) setModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
 	err := SendModel(c, AddSet, key, model)
@@ -261,7 +261,7 @@ func getBotKeyWithUuid(uuid string) string {
 	return "bot:" + uuid
 }
 
-func (db RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
+func (db *RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
 	c := db.pool.Get()
 	defer c.Close()
 	fmt.Printf("Scanning for %q\n", pattern)
@@ -295,7 +295,7 @@ func (db RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
 //end utility
 
 //deprecate
-func (db RdsDb) pushModelForKey(model interface{}, key string) error {
+func (db *RdsDb) pushModelForKey(model interface{}, key string) error {
 	c := db.pool.Get()
 	defer c.Close()
 	err := SendModel(c, addLpush, key, model)

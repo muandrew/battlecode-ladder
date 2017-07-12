@@ -6,7 +6,7 @@ import (
 
 type BcMap struct {
 	Uuid        string
-	Access      *RAM
+	Owner		*Competitor
 	Competition Competition
 	Name        UserString
 	Description UserString
@@ -23,7 +23,7 @@ func CreateBcMap(owner *Competitor, competition Competition, name string, descri
 	}
 	return &BcMap{
 		uuid.NewV4().String(),
-		CreateRAM(owner),
+		owner,
 		competition,
 		uName,
 		uDesc,

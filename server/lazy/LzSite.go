@@ -91,11 +91,13 @@ func wrapGetLoggedIn(db data.Db) func(context echo.Context) error {
 		uuid := auth.GetUuid(c)
 		bots, _ := db.GetBots(uuid, 0, 5)
 		matches, length := db.GetMatches(uuid, 0, 5)
+		maps, length := db.GetBcMaps(uuid, 0, 5)
 		model := map[string]interface{}{
 			"name":           auth.GetName(c),
 			"uuid":           uuid,
 			"latest_bots":    bots,
 			"latest_matches": matches,
+			"latest_maps":    maps,
 			"length":         length,
 		}
 
@@ -142,10 +144,10 @@ func wrapPostMapUpload(ci *build.Ci) func(context echo.Context) error {
 		if err != nil {
 			return renderFailure(c, failedUpload, err)
 		}
+
 		bcMap, err := models.CreateBcMap(
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),
-			models.CompetitionBC17,
-			c.FormValue("name"),
+			file.Filename,
 			c.FormValue("description"),
 		)
 		if err != nil {
@@ -164,10 +166,12 @@ func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) erro
 	return func(c echo.Context) error {
 		botUuid := c.FormValue("botUuid")
 		oppUuid := c.FormValue("oppUuid")
+		mapUuid := c.FormValue("mapUuid")
 
 		ownBot := db.GetBot(botUuid)
 		oppBot := db.GetBot(oppUuid)
-		err := ci.RunMatch(ownBot, oppBot)
+		bcMap := db.GetBcMap(mapUuid)
+		err := ci.RunMatch(ownBot, oppBot, bcMap)
 
 		if err != nil {
 			return renderFailure(c, failedChallenge, err)

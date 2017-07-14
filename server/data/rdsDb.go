@@ -189,6 +189,7 @@ func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.
 		match := &models.Match{
 			rdsMatch.Uuid,
 			bots,
+			rdsMatch.MapUuid,
 			rdsMatch.Status,
 			rdsMatch.Competition,
 		}
@@ -215,6 +216,16 @@ func (db *RdsDb) CreateBcMap(model *models.BcMap) error {
 
 func (db *RdsDb) UpdateBcMap(model *models.BcMap) error {
 	return db.setModelForKey(model, getBcMapKey(model))
+}
+
+func (db *RdsDb) GetBcMap(uuid string) *models.BcMap {
+	model := &models.BcMap{}
+	err := db.getModelForKey(model, getBcMapWithUuid(uuid))
+	if err != nil {
+		return nil
+	} else {
+		return model
+	}
 }
 
 func (db *RdsDb) GetBcMaps(userUuid string, page int, pageSize int) ([]*models.BcMap, int) {
@@ -306,7 +317,7 @@ func getBotKeyWithUuid(uuid string) string {
 }
 
 func getBcMapKey(m *models.BcMap) string {
-	return getBotKeyWithUuid(m.Uuid)
+	return getBcMapWithUuid(m.Uuid)
 }
 
 func getBcMapWithUuid(uuid string) string {

@@ -17,17 +17,17 @@
     <form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
         Bot Uuid: <input type="text" name="botUuid"><br>
         Opponent Uuid: <input type="text" name="oppUuid"><br>
+        Map Uuid (optional): <input type="text" name="mapUuid"><br>
         <br>
         <input type="submit" value="Challenge Bot">
     </form><br>
 
-    <!--<form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">-->
-        <!--File: <input type="file" name="file"><br>-->
-        <!--Package: <input type="text" name="name"><br>-->
-        <!--Note: <input type="text" name="description"><br>-->
-        <!--<br>-->
-        <!--<input type="submit" value="Upload Map">-->
-    <!--</form><br>-->
+    <form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">
+        File: <input type="file" name="file"><br>
+        Description: <input type="text" name="description"><br>
+        <br>
+        <input type="submit" value="Upload Map">
+    </form><br>
 
     Latest Bots<br>
     {{range .latest_bots}}
@@ -40,6 +40,11 @@
         bots: {{range .Bots}} {{.Package}} {{end}}<br>
         time: {{.Status}}<br>
         <a href="/viewer/{{.Competition}}/?{{.Uuid}}">replay</a><br>
+    {{end}}
+    <br>
+    Latest Maps:<br>
+    {{range .latest_maps}}
+    {{.}}<br>
     {{end}}
 </body>
 </html>

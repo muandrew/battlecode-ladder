@@ -18,6 +18,7 @@ import (
 const (
 	folderPermission = 0755
 	forbiddenCharacters = "~$"
+	errorIllegalArgument = utils.Error("Illegal Argument(s)")
 )
 
 type Ci struct {
@@ -95,19 +96,19 @@ func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error 
 }
 
 func (c *Ci) UploadMap(file * multipart.FileHeader, bcMap *models.BcMap) error {
-	var ext string
-	switch bcMap.Competition {
-	case models.CompetitionBC17:
-		fallthrough
-	default:
-		ext="map17"
+	if file == nil || bcMap == nil {
+		return errorIllegalArgument
 	}
-	return c.upload(file,  c.dirMap, bcMap.Uuid +"."+ ext)
+	err := c.upload(file,  c.dirMap + "/" + bcMap.Uuid, file.Filename)
+	if err != nil {
+		return err
+	}
+	return c.db.CreateBcMap(bcMap)
 }
 
 func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string) error {
 	if file == nil || destDir == "" || destFile == "" {
-		return errors.New("Illegal Argument(s)")
+		return errorIllegalArgument
 	}
 	src, err := file.Open()
 	if err != nil {
@@ -146,13 +147,20 @@ func (c *Ci) SubmitJob(bot *models.Bot) {
 	}, nil)
 }
 
-func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
+func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) error {
 	if bot1 == nil || bot2 == nil {
 		return errors.New("Couldn't find two bots to play.")
 	}
-	match, err := models.CreateMatch([]*models.Bot{bot1, bot2})
+	match, err := models.CreateMatch([]*models.Bot{bot1, bot2}, bcMap)
 	if err != nil {
 		return err
+	}
+	mapDir := ""
+	mapName := ""
+	if bcMap !=nil {
+		basename := bcMap.Name.GetRawString()
+		mapDir = c.dirMap + "/" +bcMap.Uuid
+		mapName = strings.TrimSuffix(basename, filepath.Ext(basename))
 	}
 	match.Status.SetQueued()
 	c.db.CreateMatch(match)
@@ -170,6 +178,8 @@ func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot) error {
 			bot1.Package.GetPackageFormat(),
 			bot2.Uuid,
 			bot2.Package.GetPackageFormat(),
+			mapDir,
+			mapName,
 		})
 		if err != nil {
 			match.Status.SetFailure()

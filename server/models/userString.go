@@ -10,6 +10,7 @@ type UserString string
 type UserStringFilter func(interface{}) (string, error)
 
 const (
+	RegexFilterFilename = "[^a-zA-Z0-9_.]"
 	RegexFilterPackage = "[^a-zA-Z_.]"
 	RegexFilterText    = "[<>]"
 )

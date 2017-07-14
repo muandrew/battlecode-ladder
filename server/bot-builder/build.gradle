@@ -62,7 +62,10 @@ if (!project.hasProperty("teamA")) {
 if (!project.hasProperty("teamB")) {
     ext.teamB = "examplefuncsplayer"
 }
-if (!project.hasProperty("maps")) {
+if (!project.hasProperty("mapsUrl") || project.property('mapsUrl').allWhitespace) {
+    ext.mapsUrl = "maps"
+}
+if (!project.hasProperty("maps") || project.property('maps').allWhitespace) {
     ext.maps = "shrine"
 }
 if (!project.hasProperty("teamAUrl")) {
@@ -95,7 +98,7 @@ task run(type: JavaExec, dependsOn: 'build') {
     args = ['-c=-']
     jvmArgs = [
         '-Dbc.server.mode=headless',
-        '-Dbc.server.map-path=maps',
+        '-Dbc.server.map-path='+project.property('mapsUrl'),
         '-Dbc.server.debug=true',
         '-Dbc.engine.debug-methods=false',
         '-Dbc.game.team-a='+project.property('teamA'),

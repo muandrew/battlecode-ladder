@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func ExitOnDev() {
@@ -37,6 +38,7 @@ func FatalRunShell(command string, args []string) {
 func RunShell(command string, args []string) error {
 	cmdName := command
 	cmd := exec.Command(cmdName, args...)
+	fmt.Printf("cmd: %s %s\n", cmdName, strings.Join(args, " "))
 	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)

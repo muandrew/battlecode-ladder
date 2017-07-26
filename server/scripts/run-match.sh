@@ -27,15 +27,10 @@ MATCH_URL=${DIR_MATCHES}/${MATCH_UUID}
 WKR_WRK=${DIR_WORKERS}/${WORKER_ID}/match
 
 cd ${WKR_WRK}
-rm maps
-if [[ -z "$MAP_NAME" ]]; then
-    :
-else
-    ln -s ${DIR_MAPS} maps
-fi
 
 ./gradlew run \
 -PteamA=${BOT_1_NAME} -PteamB=${BOT_2_NAME} \
 -PteamAUrl=${BOT_1_WRK} -PteamBUrl=${BOT_2_WRK} \
 -PmatchUrl=${MATCH_URL} \
+-PmapsUrl=${DIR_MAPS} \
 -Pmaps=${MAP_NAME}

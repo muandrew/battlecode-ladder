@@ -49,20 +49,11 @@ func main() {
 	t := lazy.NewInstance()
 	t.Init(e, authentication, db, ci)
 
-	r := e.Group("/restricted")
-	r.Use(authentication.AuthMiddleware)
-	r.GET("/", restricted)
-
 	e.Static("/bc17", "viewer/bc17/res")
 	e.Static("/viewer/bc17", "viewer/bc17")
 	e.Static("/replay", ci.GetDirMatches())
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":" + port))
-}
-
-func restricted(c echo.Context) error {
-	name := auth.GetName(c)
-	return c.String(http.StatusOK, "Welcome "+name+"!")
 }
 
 func getRedirected(c echo.Context) error {

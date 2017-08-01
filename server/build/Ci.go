@@ -13,11 +13,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"bufio"
 )
 
 const (
-	folderPermission = 0755
-	forbiddenCharacters = "~$"
+	folderPermission     = 0755
+	forbiddenCharacters  = "~$"
 	errorIllegalArgument = utils.Error("Illegal Argument(s)")
 )
 
@@ -38,7 +39,7 @@ func getAndSetupDir(key string, fallback string) (string, error) {
 	if dir == "" {
 		dir = fallback
 	} else if strings.ContainsAny(dir, forbiddenCharacters) {
-		return "", errors.New(fmt.Sprintf("Only relative and absolute pathing are allowed," +
+		return "", errors.New(fmt.Sprintf("Only relative and absolute pathing are allowed,"+
 			" and if you are using (%s) in your directory structure, consider better names.",
 			forbiddenCharacters))
 	}
@@ -92,14 +93,14 @@ func NewCi(db data.Db) (*Ci, error) {
 }
 
 func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
-	return c.upload(file,  c.dirBot + "/" + bot.Uuid, "source.jar")
+	return c.upload(file, c.dirBot+"/"+bot.Uuid, "source.jar")
 }
 
-func (c *Ci) UploadMap(file * multipart.FileHeader, bcMap *models.BcMap) error {
+func (c *Ci) UploadMap(file *multipart.FileHeader, bcMap *models.BcMap) error {
 	if file == nil || bcMap == nil {
 		return errorIllegalArgument
 	}
-	err := c.upload(file,  c.dirMap + "/" + bcMap.Uuid, file.Filename)
+	err := c.upload(file, c.dirMap+"/"+bcMap.Uuid, file.Filename)
 	if err != nil {
 		return err
 	}
@@ -118,7 +119,7 @@ func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string)
 
 	// Destination
 	os.MkdirAll(destDir, folderPermission)
-	dst, err := os.Create(destDir+ "/" + destFile)
+	dst, err := os.Create(destDir + "/" + destFile)
 	if err != nil {
 		return err
 	}
@@ -157,9 +158,9 @@ func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) e
 	}
 	mapDir := ""
 	mapName := ""
-	if bcMap !=nil {
+	if bcMap != nil {
 		basename := bcMap.Name.GetRawString()
-		mapDir = c.dirMap + "/" +bcMap.Uuid
+		mapDir = c.dirMap + "/" + bcMap.Uuid
 		mapName = strings.TrimSuffix(basename, filepath.Ext(basename))
 	}
 	match.Status.SetQueued()
@@ -167,26 +168,50 @@ func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) e
 	c.pool.SendWorkAsync(func(workerId int) {
 		match.Status.SetStart()
 		c.db.UpdateMatch(match)
-		err := utils.RunShell("sh", []string{
-			"scripts/run-match.sh",
-			c.dirBot,
-			c.dirMatch,
-			c.dirWorker,
-			strconv.Itoa(workerId),
-			match.Uuid,
-			bot1.Uuid,
-			bot1.Package.GetPackageFormat(),
-			bot2.Uuid,
-			bot2.Package.GetPackageFormat(),
-			mapDir,
-			mapName,
-		})
+		winner := models.WinnerNone
+		err := utils.RunShellWithScan(
+			"sh",
+			[]string{
+				"scripts/run-match.sh",
+				c.dirBot,
+				c.dirMatch,
+				c.dirWorker,
+				strconv.Itoa(workerId),
+				match.Uuid,
+				bot1.Uuid,
+				bot1.Package.GetPackageFormat(),
+				bot2.Uuid,
+				bot2.Package.GetPackageFormat(),
+				mapDir,
+				mapName,
+			},
+			func(scanner *bufio.Scanner) {
+				for scanner.Scan() {
+					line := scanner.Text()
+					if strings.Contains(line, "wins (round") {
+						index := strings.IndexRune(line, '(')
+						if index != -1 {
+							switch line[index+1] {
+							case 'A':
+								winner = 0
+							case 'B':
+								winner = 1
+							default:
+								winner = models.WinnerNone
+							}
+						}
+					}
+					fmt.Printf("%s\n", line)
+				}
+			},
+			utils.BasicScanFunc,
+		)
 		if err != nil {
 			match.Status.SetFailure()
 		} else {
 			match.Status.SetSuccess()
+			match.Winner = winner
 		}
-		match.Status.SetSuccess()
 		c.db.UpdateMatch(match)
 	}, nil)
 	return nil

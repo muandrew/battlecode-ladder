@@ -190,6 +190,7 @@ func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.
 			rdsMatch.Uuid,
 			bots,
 			rdsMatch.MapUuid,
+			rdsMatch.Winner,
 			rdsMatch.Status,
 			rdsMatch.Competition,
 		}

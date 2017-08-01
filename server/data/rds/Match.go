@@ -7,7 +7,8 @@ import (
 type Match struct {
 	Uuid        string
 	BotUuids    []string
-	MapUuid	string
+	MapUuid     string
+	Winner      int
 	Status      *models.BuildStatus
 	Competition models.Competition
 }
@@ -21,6 +22,7 @@ func CreateMatch(match *models.Match) *Match {
 		match.Uuid,
 		uuids,
 		match.Uuid,
+		match.Winner,
 		match.Status,
 		match.Competition,
 	}

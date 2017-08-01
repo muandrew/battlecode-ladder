@@ -3,7 +3,7 @@
 <html lang="en">
 {{template "header"}}
 <body>
-    Hello {{.name}}<br>
+    <h3>Hello {{.name}}</h3>
     Your Uuid is {{.uuid}}<br>
     <br>
     <form action="/lazy/loggedin/bot/upload/" method="post" enctype="multipart/form-data">
@@ -29,22 +29,26 @@
         <input type="submit" value="Upload Map">
     </form><br>
 
-    Latest Bots<br>
+    <h3>Latest Bots</h3>
     {{range .latest_bots}}
-        {{.}}<br>
-        {{.Status}}<br>
+        uuid: {{.Uuid}}<br>
+        note: {{.Note}}<br>
+        status: {{.Status}}<br>
     {{end}}
     <br>
-    Latest Matches:<br>
+    <h3>Latest Matches:</h3>
     {{range .latest_matches}}
         bots: {{range .Bots}} {{.Package}} {{end}}<br>
+        winner: {{.Winner}}<br>
         time: {{.Status}}<br>
         <a href="/viewer/{{.Competition}}/?{{.Uuid}}">replay</a><br>
     {{end}}
     <br>
-    Latest Maps:<br>
+    <h3>Latest Maps:</h3>
     {{range .latest_maps}}
-    {{.}}<br>
+        uuid: {{.Uuid}}<br>
+        name: {{.Name}}<br>
+        description: {{.Description}}<br>
     {{end}}
 </body>
 </html>

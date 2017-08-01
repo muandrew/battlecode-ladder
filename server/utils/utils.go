@@ -11,9 +11,17 @@ import (
 	"strings"
 )
 
+type ScanFunc func(*bufio.Scanner);
+
 func ExitOnDev() {
 	if IsDev() {
 		os.Exit(1)
+	}
+}
+
+func BasicScanFunc(scanner *bufio.Scanner) {
+	for scanner.Scan() {
+		fmt.Printf("%s\n", scanner.Text())
 	}
 }
 
@@ -36,23 +44,33 @@ func FatalRunShell(command string, args []string) {
 }
 
 func RunShell(command string, args []string) error {
+	return RunShellWithScan(command, args, BasicScanFunc, BasicScanFunc)
+}
+
+func RunShellWithScan(command string, args []string, stdio ScanFunc, stderr ScanFunc) error {
 	cmdName := command
 	cmd := exec.Command(cmdName, args...)
 	fmt.Printf("cmd: %s %s\n", cmdName, strings.Join(args, " "))
-	cmdReader, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		return err
+
+	if  stdio != nil {
+		cmdReader, err := cmd.StdoutPipe()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, "Error creating StdoutPipe for Cmd", err)
+			return err
+		}
+		go stdio(bufio.NewScanner(cmdReader))
 	}
 
-	scanner := bufio.NewScanner(cmdReader)
-	go func() {
-		for scanner.Scan() {
-			fmt.Printf("%s", scanner.Text())
+	if stderr != nil {
+		errReader, err := cmd.StderrPipe()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error creating StderrPipe for Cmd", err)
+			return err
 		}
-	}()
+		go stderr(bufio.NewScanner(errReader))
+	}
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
 		return err

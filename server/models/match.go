@@ -5,10 +5,16 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+const (
+	WinnerNone    = -1
+	WinnerNeutral = -2
+)
+
 type Match struct {
 	Uuid        string
 	Bots        []*Bot
 	MapUuid     string
+	Winner      int
 	Status      *BuildStatus
 	Competition Competition
 }
@@ -32,6 +38,7 @@ func CreateMatch(bots []*Bot, bcMap *BcMap) (*Match, error) {
 		uuid.NewV4().String(),
 		bots,
 		mapUuid,
+		WinnerNone,
 		NewBuildStatus(),
 		competition,
 	}, nil

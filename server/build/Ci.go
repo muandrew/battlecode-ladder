@@ -138,7 +138,7 @@ func (c *Ci) SubmitJob(bot *models.Bot) {
 	c.pool.SendWorkAsync(func(workerId int) {
 		bot.Status.SetStart()
 		c.db.UpdateBot(bot)
-		err := utils.RunShell("sh", []string{"scripts/build-bot.sh", c.dirBot, bot.Uuid})
+		err := utils.RunShell("bash", []string{"scripts/build-bot.sh", c.dirBot, bot.Uuid})
 		if err != nil {
 			bot.Status.SetFailure()
 		} else {
@@ -170,7 +170,7 @@ func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) e
 		c.db.UpdateMatch(match)
 		winner := models.WinnerNone
 		err := utils.RunShellWithScan(
-			"sh",
+			"bash",
 			[]string{
 				"scripts/run-match.sh",
 				c.dirBot,
@@ -227,7 +227,7 @@ func (c *Ci) GetDirMatches() string {
 
 func SetUpWorkspace(workerDir string, workerId int) {
 	utils.FatalRunShell(
-		"sh",
+		"bash",
 		[]string{
 			"scripts/setup-worker-match-workspace.sh",
 			workerDir,

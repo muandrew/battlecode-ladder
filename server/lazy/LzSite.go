@@ -82,7 +82,7 @@ func getDevScript(c echo.Context) error {
 
 func postDevScript(c echo.Context) error {
 	script := c.FormValue("script")
-	utils.RunShell("sh", []string{"scripts/" + script})
+	utils.RunShell("bash", []string{"scripts/" + script})
 	return c.Render(http.StatusOK, "dev_script", nil)
 }
 

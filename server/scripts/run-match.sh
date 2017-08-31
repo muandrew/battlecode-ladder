@@ -33,4 +33,5 @@ cd ${WKR_WRK}
 -PteamAUrl=${BOT_1_WRK} -PteamBUrl=${BOT_2_WRK} \
 -PmatchUrl=${MATCH_URL} \
 -PmapsUrl=${DIR_MAPS} \
--Pmaps=${MAP_NAME}
+-Pmaps=${MAP_NAME} \
+-Pwebsocket=$(( 8700 + WORKER_ID ))

@@ -77,6 +77,9 @@ if (!project.hasProperty("teamBUrl")) {
 if (!project.hasProperty("matchUrl")) {
     ext.matchUrl = "/"
 }
+if (!project.hasProperty("websocket")) {
+    ext.websocket = "6175"
+}
 
 build.group = 'battlecode'
 
@@ -106,7 +109,8 @@ task run(type: JavaExec, dependsOn: 'build') {
         '-Dbc.game.team-b.url='+project.property('teamBUrl'),
         '-Dbc.game.maps='+project.property('maps'),
         '-Dbc.game.map-path='+project.property('mapsUrl'),
-        '-Dbc.server.save-file='+project.property('matchUrl') + '.bc17'
+        '-Dbc.server.save-file='+project.property('matchUrl') + '.bc17',
+        '-Dbc.server.websocket='+project.property('websocket')
     ]
 }
 

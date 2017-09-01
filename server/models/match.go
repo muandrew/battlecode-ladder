@@ -25,8 +25,11 @@ func CreateMatch(bots []*Bot, bcMap *BcMap) (*Match, error) {
 		return nil, errors.New("Can't play with just one bot")
 	}
 	competition := bots[0].Competition
-	for i := 1; i < length; i++ {
-		if competition != bots[i].Competition {
+	for _, bot := range bots {
+		if bot == nil {
+			return nil, errors.New("Nil bot received.");
+		}
+		if competition != bot.Competition {
 			return nil, errors.New("Bots from different competitions can't play with each other.")
 		}
 	}

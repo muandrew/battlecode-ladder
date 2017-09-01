@@ -148,14 +148,20 @@ func (c *Ci) SubmitJob(bot *models.Bot) {
 	}, nil)
 }
 
-func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) error {
-	if bot1 == nil || bot2 == nil {
-		return errors.New("Couldn't find two bots to play.")
+func (c *Ci) RunMatch(bots []*models.Bot, bcMap *models.BcMap) error {
+	if len(bots) != 2 {
+		return errors.New("Currently only support 1v1.");
 	}
-	match, err := models.CreateMatch([]*models.Bot{bot1, bot2}, bcMap)
+	match, err := models.CreateMatch(bots, bcMap)
 	if err != nil {
 		return err
 	}
+	return c.RunMatchWithModel(match, bcMap)
+}
+
+func (c *Ci) RunMatchWithModel(match *models.Match, bcMap *models.BcMap) error {
+	bot1 := match.Bots[0];
+	bot2 := match.Bots[1];
 	mapDir := ""
 	mapName := ""
 	if bcMap != nil {
@@ -215,6 +221,36 @@ func (c *Ci) RunMatch(bot1 *models.Bot, bot2 *models.Bot, bcMap *models.BcMap) e
 		c.db.UpdateMatch(match)
 	}, nil)
 	return nil
+}
+
+func (c *Ci) RunGame(
+	owner *models.Competitor,
+	name string,
+	description string,
+	bots []*models.Bot,
+	bcMap *models.BcMap) error {
+
+	if bots == nil {
+		return errors.New("Bots should not be empty.")
+	}
+	game, err := models.CreateGameRoundRobin(
+		owner,
+		models.CompetitionBC17,
+		name,
+		description,
+		bots,
+		bcMap,
+	)
+	if err != nil {
+		return err
+	}
+	for _, match := range game.Matches {
+		err = c.RunMatchWithModel(match, nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil;
 }
 
 func (c *Ci) Close() {

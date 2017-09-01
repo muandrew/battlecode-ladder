@@ -3,53 +3,66 @@
 <html lang="en">
 {{template "header"}}
 <body>
-    <h3>Hello {{.name}}</h3>
-    Your Uuid is {{.uuid}}<br>
+<h3>Hello {{.name}}</h3>
+Your Uuid is {{.uuid}}<br>
+<br>
+<form action="/lazy/loggedin/bot/upload/" method="post" enctype="multipart/form-data">
+    File: <input type="file" name="file"><br>
+    Package: <input type="text" name="package"><br>
+    Note: <input type="text" name="note"><br>
     <br>
-    <form action="/lazy/loggedin/bot/upload/" method="post" enctype="multipart/form-data">
-        File: <input type="file" name="file"><br>
-        Package: <input type="text" name="package"><br>
-        Note: <input type="text" name="note"><br>
-        <br>
-        <input type="submit" value="Upload Bot">
-    </form><br>
+    <input type="submit" value="Upload Bot">
+</form>
+<br>
 
-    <form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
-        Bot Uuid: <input type="text" name="botUuid"><br>
-        Opponent Uuid: <input type="text" name="oppUuid"><br>
-        Map Uuid (optional): <input type="text" name="mapUuid"><br>
-        <br>
-        <input type="submit" value="Challenge Bot">
-    </form><br>
-
-    <form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">
-        File: <input type="file" name="file"><br>
-        Description: <input type="text" name="description"><br>
-        <br>
-        <input type="submit" value="Upload Map">
-    </form><br>
-
-    <h3>Latest Bots</h3>
-    {{range .latest_bots}}
-        uuid: {{.Uuid}}<br>
-        note: {{.Note}}<br>
-        status: {{.Status}}<br>
-    {{end}}
+<form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
+    Bot Uuid: <input type="text" name="botUuid"><br>
+    Opponent Uuid: <input type="text" name="oppUuid"><br>
+    Map Uuid (optional): <input type="text" name="mapUuid"><br>
     <br>
-    <h3>Latest Matches:</h3>
-    {{range .latest_matches}}
-        bots: {{range .Bots}} {{.Package}} {{end}}<br>
-        winner: {{.Winner}}<br>
-        time: {{.Status}}<br>
-        <a href="/viewer/{{.Competition}}/?{{.Uuid}}">replay</a><br>
-    {{end}}
+    <input type="submit" value="Challenge Bot">
+</form>
+<br>
+
+<form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">
+    File: <input type="file" name="file"><br>
+    Description: <input type="text" name="description"><br>
     <br>
-    <h3>Latest Maps:</h3>
-    {{range .latest_maps}}
-        uuid: {{.Uuid}}<br>
-        name: {{.Name}}<br>
-        description: {{.Description}}<br>
-    {{end}}
+    <input type="submit" value="Upload Map">
+</form>
+<br>
+
+<form action="/lazy/loggedin/challenge-game/" method="post" enctype="multipart/form-data">
+    Bot Uuids: <input type="text" name="botUuids"><br>
+    Name: <input type="text" name="name"><br>
+    Description: <input type="text" name="description"><br>
+    Map Uuid (optional): <input type="text" name="mapUuid"><br>
+    <br>
+    <input type="submit" value="Challenge Bot">
+</form>
+<br>
+
+<h3>Latest Bots</h3>
+{{range .latest_bots}}
+uuid: {{.Uuid}}<br>
+note: {{.Note}}<br>
+status: {{.Status}}<br>
+{{end}}
+<br>
+<h3>Latest Matches:</h3>
+{{range .latest_matches}}
+bots: {{range .Bots}} {{.Package}} {{end}}<br>
+winner: {{.Winner}}<br>
+time: {{.Status}}<br>
+<a href="/viewer/{{.Competition}}/?{{.Uuid}}">replay</a><br>
+{{end}}
+<br>
+<h3>Latest Maps:</h3>
+{{range .latest_maps}}
+uuid: {{.Uuid}}<br>
+name: {{.Name}}<br>
+description: {{.Description}}<br>
+{{end}}
 </body>
 </html>
 {{end}}

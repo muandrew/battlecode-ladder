@@ -11,6 +11,9 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"errors"
+	"strings"
+	"fmt"
 )
 
 type LzSite struct {
@@ -20,6 +23,7 @@ type LzSite struct {
 const (
 	failedUpload    = "Upload failed :/"
 	failedChallenge = "Challenge failed T.T"
+	maxBotsInGame   = 4
 )
 
 func NewInstance() *LzSite {
@@ -40,6 +44,7 @@ func (t *LzSite) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	r.POST("/bot/upload/", wrapPostUpload(c))
 	r.POST("/map/upload/", wrapPostMapUpload(c))
 	r.POST("/challenge/", wrapPostChallenge(db, c))
+	r.POST("/challenge-game/", wrapPostChallengeGame(db, c))
 
 	if utils.IsDev() {
 		d := g.Group("/dev")
@@ -171,7 +176,57 @@ func wrapPostChallenge(db data.Db, ci *build.Ci) func(context echo.Context) erro
 		ownBot := db.GetBot(botUuid)
 		oppBot := db.GetBot(oppUuid)
 		bcMap := db.GetBcMap(mapUuid)
-		err := ci.RunMatch(ownBot, oppBot, bcMap)
+		if ownBot == nil || oppBot == nil {
+			return errors.New("Couldn't find two bots to play.")
+		}
+		err := ci.RunMatch([]*models.Bot{ownBot, oppBot}, bcMap)
+
+		if err != nil {
+			return renderFailure(c, failedChallenge, err)
+		} else {
+			return c.Render(http.StatusOK, "challenged", nil)
+		}
+	}
+}
+
+func wrapPostChallengeGame(db data.Db, ci *build.Ci) func(context echo.Context) error {
+	return func(c echo.Context) error {
+		uuid := auth.GetUuid(c)
+		name := c.FormValue("name")
+		description := c.FormValue("description")
+		formBotUuids := c.FormValue("botUuids")
+		mapUuid := c.FormValue("mapUuid")
+
+		botUuids := strings.Split(formBotUuids, ",");
+		if len(botUuids) > maxBotsInGame {
+			return renderFailure(
+				c,
+				failedChallenge,
+				errors.New(fmt.Sprintf(
+					"Too many fights the server will explode! The current max is %d",
+					maxBotsInGame)))
+		}
+		bots := make([]*models.Bot, len(botUuids), len(botUuids))
+		for i, botUuid := range botUuids {
+			bot := db.GetBot(botUuid);
+			if bot == nil {
+				return renderFailure(
+					c,
+					failedChallenge,
+					errors.New(fmt.Sprintf("Couldn't find bot %s", botUuid)))
+			} else {
+				bots[i] = bot
+			}
+		}
+
+		bcMap := db.GetBcMap(mapUuid)
+		err := ci.RunGame(
+			models.NewCompetitor(models.CompetitorTypeUser, uuid),
+			name,
+			description,
+			bots,
+			bcMap,
+		)
 
 		if err != nil {
 			return renderFailure(c, failedChallenge, err)

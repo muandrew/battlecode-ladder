@@ -7,13 +7,12 @@ import (
 	"github.com/muandrew/battlecode-ladder/auth"
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
+	"github.com/muandrew/battlecode-ladder/graphql"
 	"github.com/muandrew/battlecode-ladder/lazy"
 	"github.com/muandrew/battlecode-ladder/oauth"
 	"github.com/muandrew/battlecode-ladder/utils"
 	"log"
 )
-
-var db data.Db
 
 func main() {
 	utils.InitMainEnv()
@@ -48,7 +47,12 @@ func main() {
 
 	t := lazy.NewInstance()
 	t.Init(e, authentication, db, ci)
-
+	if utils.IsDev() {
+		err = graphql.Init(db, e)
+		if err != nil {
+			log.Fatalf("Failed to init GraphQL: %s", err)
+		}
+	}
 	e.Static("/bc17", "viewer/bc17/res")
 	e.Static("/viewer/bc17", "viewer/bc17")
 	e.Static("/replay", ci.GetDirMatches())

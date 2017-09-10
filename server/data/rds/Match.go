@@ -21,7 +21,7 @@ func CreateMatch(match *models.Match) *Match {
 	return &Match{
 		match.Uuid,
 		uuids,
-		match.Uuid,
+		match.MapUuid,
 		match.Winner,
 		match.Status,
 		match.Competition,

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"github.com/muandrew/battlecode-ladder/data/rds"
 	"github.com/muandrew/battlecode-ladder/models"
 	"time"
 )
@@ -134,7 +133,7 @@ func (db *RdsDb) CreateMatch(model *models.Match) error {
 	c := db.pool.Get()
 	defer c.Close()
 
-	err := SendModel(c, AddSet, getMatchKey(model), rds.CreateMatch(model))
+	err := SendModel(c, AddSet, getMatchKey(model), CreateMatch(model))
 	if err != nil {
 		return err
 	}
@@ -154,7 +153,7 @@ func (db *RdsDb) CreateMatch(model *models.Match) error {
 }
 
 func (db *RdsDb) UpdateMatch(model *models.Match) error {
-	return db.setModelForKey(rds.CreateMatch(model), getMatchKey(model))
+	return db.setModelForKey(CreateMatch(model), getMatchKey(model))
 }
 
 func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
@@ -170,7 +169,7 @@ func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.
 	matches := make([]*models.Match, len(matchUuids))
 
 	for i, matchUuid := range matchUuids {
-		rdsMatch := &rds.Match{}
+		rdsMatch := &Match{}
 		err = GetModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
 		if err != nil {
 			return nil, 0

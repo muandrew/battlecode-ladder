@@ -1,4 +1,4 @@
-package rds
+package data
 
 import (
 	"github.com/muandrew/battlecode-ladder/models"

@@ -1,6 +1,8 @@
 package data
 
-import "github.com/muandrew/battlecode-ladder/models"
+import (
+	"github.com/muandrew/battlecode-ladder/models"
+)
 
 type Db interface {
 	GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User
@@ -11,6 +13,7 @@ type Db interface {
 	GetBots(userUuid string, page int, pageSize int) ([]*models.Bot, int)
 	CreateMatch(model *models.Match) error
 	UpdateMatch(model *models.Match) error
+	GetMatch(matchUuid string) (*Match, error)
 	GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int)
 	CreateBcMap(model *models.BcMap) error
 	UpdateBcMap(model *models.BcMap) error

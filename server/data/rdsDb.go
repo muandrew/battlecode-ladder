@@ -156,6 +156,16 @@ func (db *RdsDb) UpdateMatch(model *models.Match) error {
 	return db.setModelForKey(CreateMatch(model), getMatchKey(model))
 }
 
+func (db *RdsDb) GetMatch(matchUuid string) (*Match, error) {
+	model := &Match{}
+	err := db.getModelForKey(model, getMatchKeyWithUuid(matchUuid))
+	if err != nil {
+		return nil, err
+	} else {
+		return model, nil
+	}
+}
+
 func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
 	c := db.pool.Get()
 	defer c.Close()

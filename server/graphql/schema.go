@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/data"
+	"github.com/muandrew/battlecode-ladder/auth"
+	"context"
 )
 
 type Request struct {
@@ -234,10 +236,11 @@ func schema(db data.Db) (graphql.Schema, error) {
 	})
 }
 
-func executeQuery(query string, schema graphql.Schema) *graphql.Result {
+func executeQuery(schema graphql.Schema, query string, viewerUuid string) *graphql.Result {
 	result := graphql.Do(graphql.Params{
 		Schema:        schema,
 		RequestString: query,
+		Context:       context.WithValue(context.Background(), "viewer", viewerUuid),
 	})
 	if len(result.Errors) > 0 {
 		fmt.Printf("wrong result, unexpected errors: %v", result.Errors)
@@ -251,7 +254,11 @@ func Init(db data.Db, e *echo.Echo) error {
 		return err
 	}
 	e.GET("graphql/", func(context echo.Context) error {
-		result := executeQuery(context.QueryParam("query"), schema)
+		result := executeQuery(
+			schema,
+			context.QueryParam("query"),
+			auth.GetUuid(context),
+		)
 		return context.JSON(http.StatusOK, result)
 	})
 	e.POST("graphql/", func(context echo.Context) error {
@@ -260,7 +267,11 @@ func Init(db data.Db, e *echo.Echo) error {
 		if err != nil {
 			return err
 		}
-		result := executeQuery(request.Query, schema)
+		result := executeQuery(
+			schema,
+			request.Query,
+			auth.GetUuid(context),
+		)
 		return context.JSON(http.StatusOK, result)
 	})
 	return nil

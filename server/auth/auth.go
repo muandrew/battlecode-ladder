@@ -1,7 +1,7 @@
 package auth
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/muandrew/battlecode-ladder/data"
@@ -68,7 +68,11 @@ func GetName(c echo.Context) string {
 }
 
 func GetUuid(c echo.Context) string {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	return claims["uuid"].(string)
+	user, ok := c.Get("user").(*jwt.Token)
+	if ok {
+		claims := user.Claims.(jwt.MapClaims)
+		return claims["uuid"].(string)
+	} else {
+		return ""
+	}
 }

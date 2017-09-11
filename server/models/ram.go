@@ -18,7 +18,7 @@ type ramAccessTier int
 const (
 	RamAccessNone = ramAccessTier(0)
 	RamAccessR    = ramAccessTier(1)
-	RamAccessRW   = ramAccessTier(2)
+	RamAccessRW   = ramAccessTier(3)
 	errorAccess   = utils.Error("Insufficient permission.")
 	errorArgument = utils.Error("Incorrect Argument.")
 )

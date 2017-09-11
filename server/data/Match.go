@@ -13,6 +13,11 @@ type Match struct {
 	Competition models.Competition
 }
 
+type Matches struct {
+	Matches      []*models.Match
+	TotalMatches int
+}
+
 func CreateMatch(match *models.Match) *Match {
 	uuids := make([]string, len(match.Bots))
 	for i, bot := range match.Bots {

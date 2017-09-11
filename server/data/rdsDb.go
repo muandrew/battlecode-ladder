@@ -166,6 +166,32 @@ func (db *RdsDb) GetMatch(matchUuid string) (*Match, error) {
 	}
 }
 
+func (db *RdsDb) GetDataMatches(userUuid string, page int, pageSize int) (*Page, error) {
+	c := db.pool.Get()
+	defer c.Close()
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":match-list"))
+	start := page * pageSize
+	end := start + pageSize - 1
+	matchUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":match-list", start, end))
+	if err != nil {
+		return nil, err
+	}
+	matches := make([]interface{}, len(matchUuids))
+
+	for i, matchUuid := range matchUuids {
+		rdsMatch := &Match{}
+		err = GetModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
+		if err != nil {
+			return nil, err
+		}
+		matches[i] = rdsMatch
+	}
+	return &Page{
+		matches,
+		length,
+	}, err
+}
+
 func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
 	c := db.pool.Get()
 	defer c.Close()

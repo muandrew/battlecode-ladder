@@ -13,6 +13,38 @@ type Request struct {
 	Query string `json:"query"`
 }
 
+func NewPageType(gqlType graphql.Type, titleSingular string, plural string) (*graphql.Object) {
+	return graphql.NewObject(graphql.ObjectConfig{
+		Name:        fmt.Sprintf("%sPage", titleSingular),
+		Description: fmt.Sprintf("A result for asking for a list of %s.", plural),
+		Fields: graphql.Fields{
+			"retrieved": &graphql.Field{
+				Type: graphql.NewList(gqlType),
+				Description: fmt.Sprintf(
+					"The %s retrieved, this may or may not be the total number of %s available",
+					plural,
+					plural),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if m, ok := p.Source.(*data.Page); ok {
+						return m.Retrieved, nil
+					}
+					return nil, nil
+				},
+			},
+			"total": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Int),
+				Description: fmt.Sprintf("The total number of %s", plural),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if m, ok := p.Source.(*data.Page); ok {
+						return m.Total, nil
+					}
+					return 0, nil
+				},
+			},
+		},
+	})
+}
+
 func rootQuery(db data.Db) *graphql.Object {
 	bcMapType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "BCMap",
@@ -95,6 +127,8 @@ func rootQuery(db data.Db) *graphql.Object {
 		},
 	})
 
+	matchPageType := NewPageType(matchType, "Match", "matches")
+
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Query",
 		Description: "Root query",
@@ -124,16 +158,29 @@ func rootQuery(db data.Db) *graphql.Object {
 								return nil, nil
 							},
 						},
-						"map": &graphql.Field{
-							Type:        bcMapType,
-							Description: "The map the game was played on",
-
+						"latestMatches": &graphql.Field{
+							Type:        matchPageType,
+							Description: "the latest few matches played",
+							Args: graphql.FieldConfigArgument{
+								"page": &graphql.ArgumentConfig{
+									Type:        graphql.NewNonNull(graphql.Int),
+									Description: "The page a user is on",
+								},
+								"pageSize": &graphql.ArgumentConfig{
+									Type:        graphql.NewNonNull(graphql.Int),
+									Description: "How many items per page",
+								},
+							},
 							Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-								if m, ok := p.Source.(*models.Match); ok {
-									return db.GetBcMap(m.MapUuid), nil
+								if user, ok := p.Source.(*models.User); ok {
+									page, _ := db.GetDataMatches(
+										user.Uuid,
+										p.Args["page"].(int),
+										p.Args["pageSize"].(int),
+									)
+									return page, nil
 								}
 								return nil, nil
-
 							},
 						},
 					},

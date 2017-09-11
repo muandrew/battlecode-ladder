@@ -48,6 +48,46 @@ func NewPageType(gqlType graphql.Type, titleSingular string, plural string) (*gr
 }
 
 func rootQuery(db data.Db) *graphql.Object {
+	botType := graphql.NewObject(graphql.ObjectConfig{
+		Name:        "Bot",
+		Description: "A specific build of a bot",
+		Fields: graphql.Fields{
+			"uuid": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.String),
+				Name:        "BotUuid",
+				Description: "A bot's uuid.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if m, ok := p.Source.(*models.Bot); ok {
+						return m.Uuid, nil
+					}
+					return nil, nil
+				},
+			},
+			"package": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.String),
+				Name:        "BotPackage",
+				Description: "A bot's package name",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if m, ok := p.Source.(*models.Bot); ok {
+						return m.Package, nil
+					}
+					return nil, nil
+				},
+			},
+			"note": &graphql.Field{
+				Type:        graphql.String,
+				Name:        "BotNote",
+				Description: "A competitor's note for a bot.",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					if m, ok := p.Source.(*models.Bot); ok {
+						return m.Note, nil
+					}
+					return nil, nil
+				},
+			},
+		},
+	})
+
 	bcMapType := graphql.NewObject(graphql.ObjectConfig{
 		Name:        "BCMap",
 		Description: "Map, say Map!",
@@ -224,6 +264,20 @@ func rootQuery(db data.Db) *graphql.Object {
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return db.GetBcMap(p.Args["uuid"].(string)), nil
+				},
+			},
+			"bot": &graphql.Field{
+				Type:        botType,
+				Name:        "Bot",
+				Description: "A package of code",
+				Args: graphql.FieldConfigArgument{
+					"uuid": &graphql.ArgumentConfig{
+						Description: "A bots's uuid.",
+						Type:        graphql.String,
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return db.GetBot(p.Args["uuid"].(string)), nil
 				},
 			},
 		},

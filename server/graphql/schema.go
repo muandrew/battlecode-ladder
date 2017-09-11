@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"github.com/graphql-go/graphql"
@@ -8,7 +9,6 @@ import (
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/data"
 	"github.com/muandrew/battlecode-ladder/auth"
-	"context"
 )
 
 type Request struct {

@@ -1,22 +1,21 @@
 package main
 
 import (
+	"github.com/garyburd/redigo/redis"
+	"github.com/labstack/gommon/log"
 	"github.com/muandrew/battlecode-ladder/utils"
 	"github.com/muandrew/battlecode-ladder/data"
-	"github.com/garyburd/redigo/redis"
 	"github.com/muandrew/battlecode-ladder/models"
-	"github.com/labstack/gommon/log"
-	"github.com/muandrew/battlecode-ladder/data/rds"
 )
 
 func main() {
 	utils.InitMainEnv()
 	db, _ := data.NewRdsDb(utils.GetRequiredEnvFatal("REDIS_ADDRESS"))
 	err := db.Scan("match:*", func(c redis.Conn, key string) {
-		match := &rds.Match{}
+		match := &data.Match{}
 		data.GetModel(c, key, match)
 		if match.Competition == "" {
-			match.Competition = models.BotCompetitionBC17
+			match.Competition = models.CompetitionBC17
 		}
 		data.SendModel(c, data.AddSet, key, match)
 		c.Flush()
@@ -27,7 +26,7 @@ func main() {
 		bot := &models.Bot{}
 		data.GetModel(c, key, bot)
 		if bot.Competition == "" {
-			bot.Competition = models.BotCompetitionBC17
+			bot.Competition = models.CompetitionBC17
 		}
 		data.SendModel(c, data.AddSet, key, bot)
 		c.Flush()

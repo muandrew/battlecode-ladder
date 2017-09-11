@@ -1,9 +1,9 @@
 package graphql
 
 import (
-	"github.com/graphql-go/graphql"
 	"fmt"
 	"net/http"
+	"github.com/graphql-go/graphql"
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/data"
@@ -141,8 +141,8 @@ func rootQuery(db data.Db) *graphql.Object {
 				Description: "gets a user",
 				Args: graphql.FieldConfigArgument{
 					"uuid": &graphql.ArgumentConfig{
-						Description: "A user's uuid.",
 						Type:        graphql.String,
+						Description: "A user's uuid.",
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -155,8 +155,8 @@ func rootQuery(db data.Db) *graphql.Object {
 				Description: "Getting a match",
 				Args: graphql.FieldConfigArgument{
 					"uuid": &graphql.ArgumentConfig{
-						Description: "A match's uuid.",
 						Type:        graphql.String,
+						Description: "A match's uuid.",
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

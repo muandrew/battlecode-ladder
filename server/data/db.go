@@ -11,6 +11,8 @@ type Db interface {
 	UpdateBot(model *models.Bot) error
 	GetBot(uuid string) *models.Bot
 	GetBots(userUuid string, page int, pageSize int) ([]*models.Bot, int)
+	GetPublicBots(page int, pageSize int) ([]*models.Bot, int)
+	SetPublicBot(userUuid string, botUuid string) (*models.Bot, error)
 	CreateMatch(model *models.Match) error
 	UpdateMatch(model *models.Match) error
 	GetMatch(matchUuid string) (*Match, error)

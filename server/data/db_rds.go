@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/garyburd/redigo/redis"
 	"github.com/muandrew/battlecode-ladder/models"
-	"time"
 )
 
 const (
@@ -127,6 +128,82 @@ func (db *RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot
 		bots[i] = bot
 	}
 	return bots, length
+}
+
+func (db *RdsDb) GetPublicBots(page int, pageSize int) ([]*models.Bot, int) {
+	c := db.pool.Get()
+	defer c.Close()
+
+	botUuids, err := redis.Strings(c.Do("ZREVRANGE", "public:bot-list", 0, -1))
+	if err != nil {
+		return nil, 0
+	}
+
+	length := len(botUuids)
+	bots := make([]*models.Bot, length)
+	for i, botUuid := range botUuids {
+		bot := &models.Bot{}
+		err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
+		if err != nil {
+			return nil, 0
+		}
+		bots[i] = bot
+	}
+	return bots, length
+}
+
+func (db *RdsDb) SetPublicBot(userUuid string, botUuid string) (*models.Bot, error) {
+	c := db.pool.Get()
+	defer c.Close()
+
+	currentBotUuid, _ := redis.String(c.Do("GET", "user:"+userUuid+":public-bot"))
+
+	bot := &models.Bot{}
+	err := GetModel(c, getBotKeyWithUuid(botUuid), bot)
+	if err != nil {
+		return nil, err
+	}
+
+	if bot.Owner.Uuid != userUuid {
+		return nil, errors.New("you can only set your own bot")
+	}
+	if bot.Status.Status != models.BuildStatusSuccess {
+		return nil, errors.New("you should only set successful bots")
+	}
+
+	// user removing public bot
+	if bot == nil {
+		if currentBotUuid != "" {
+			err := c.Send("DEL", "user:"+userUuid+":public-bot")
+			if err != nil {
+				return nil, err
+			}
+			err = c.Send("ZREM", "public:bot-list", currentBotUuid)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		err = c.Send("SET", "user:"+userUuid+":public-bot", bot.Uuid)
+		if err != nil {
+			return nil, err
+		}
+		if currentBotUuid != "" {
+			err = c.Send("ZREM", "public:bot-list", currentBotUuid)
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = c.Send("ZADD", "public:bot-list", time.Now().Unix(), bot.Uuid)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = c.Flush()
+	if err != nil {
+		return nil, err
+	}
+	return bot, nil
 }
 
 func (db *RdsDb) CreateMatch(model *models.Match) error {

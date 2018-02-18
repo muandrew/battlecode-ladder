@@ -1,0 +1,19 @@
+{{define "public_bots"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "header"}}
+<body>
+
+<h3>Latest Bots</h3>
+{{range .}}
+    uuid: {{.Uuid}}<br>
+    package: {{.Package}}<br>
+    note: {{.Note}}<br>
+    status: {{.Status}}<br>
+{{end}}
+<br>
+<a href="/lazy/loggedin/">Continue</a>
+
+</body>
+</html>
+{{end}}

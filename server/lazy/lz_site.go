@@ -2,18 +2,19 @@ package lazy
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"html/template"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-ladder/auth"
 	"github.com/muandrew/battlecode-ladder/build"
 	"github.com/muandrew/battlecode-ladder/data"
 	"github.com/muandrew/battlecode-ladder/models"
 	"github.com/muandrew/battlecode-ladder/utils"
-	"html/template"
-	"io"
-	"net/http"
-	"errors"
-	"strings"
-	"fmt"
 )
 
 type LzSite struct {
@@ -42,6 +43,8 @@ func (t *LzSite) Init(e *echo.Echo, a *auth.Auth, db data.Db, c *build.Ci) {
 	r.Use(a.AuthMiddleware)
 	r.GET("/", wrapGetLoggedIn(db))
 	r.POST("/bot/upload/", wrapPostUpload(c))
+	r.POST("/bot/public/", wrapPostMakePublic(db))
+	r.GET("/bot/public/", wrapGetPublicBots(db))
 	r.POST("/map/upload/", wrapPostMapUpload(c))
 	r.POST("/challenge/", wrapPostChallenge(db, c))
 	r.POST("/challenge-game/", wrapPostChallengeGame(db, c))
@@ -142,6 +145,25 @@ func wrapPostUpload(ci *build.Ci) func(context echo.Context) error {
 	}
 }
 
+func wrapPostMakePublic(db data.Db) func(context echo.Context) error {
+	return func(c echo.Context) error {
+		uuid := auth.GetUuid(c)
+		botUuid := c.FormValue("botUuid")
+		bot, err := db.SetPublicBot(uuid,botUuid)
+		if err != nil {
+			return renderFailure(c, "failed to set bot as public: ", err)
+		}
+		return c.Render(http.StatusOK, "public_bot_set", bot)
+	}
+}
+
+func wrapGetPublicBots(db data.Db) func(ctx echo.Context) error {
+	return func(c echo.Context) error {
+		bots,_ := db.GetPublicBots(0,10)
+		return c.Render(http.StatusOK, "public_bots", bots)
+	}
+}
+
 func wrapPostMapUpload(ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
 		uuid := auth.GetUuid(c)
@@ -197,7 +219,7 @@ func wrapPostChallengeGame(db data.Db, ci *build.Ci) func(context echo.Context) 
 		formBotUuids := c.FormValue("botUuids")
 		mapUuid := c.FormValue("mapUuid")
 
-		botUuids := strings.Split(formBotUuids, ",");
+		botUuids := strings.Split(formBotUuids, ",")
 		if len(botUuids) > maxBotsInGame {
 			return renderFailure(
 				c,
@@ -208,7 +230,7 @@ func wrapPostChallengeGame(db data.Db, ci *build.Ci) func(context echo.Context) 
 		}
 		bots := make([]*models.Bot, len(botUuids), len(botUuids))
 		for i, botUuid := range botUuids {
-			bot := db.GetBot(botUuid);
+			bot := db.GetBot(botUuid)
 			if bot == nil {
 				return renderFailure(
 					c,

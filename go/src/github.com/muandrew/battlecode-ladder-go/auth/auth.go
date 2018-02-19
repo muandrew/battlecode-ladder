@@ -4,8 +4,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/muandrew/battlecode-ladder/data"
-	"github.com/muandrew/battlecode-ladder/models"
+	"github.com/muandrew/battlecode-ladder-go/data"
+	"github.com/muandrew/battlecode-ladder-go/models"
 	"net/http"
 	"time"
 )

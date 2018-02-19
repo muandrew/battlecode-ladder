@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/muandrew/battlecode-ladder/models"
+	"github.com/muandrew/battlecode-ladder-go/models"
 )
 
 const (

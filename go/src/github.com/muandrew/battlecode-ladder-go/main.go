@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder/auth"
-	"github.com/muandrew/battlecode-ladder/build"
-	"github.com/muandrew/battlecode-ladder/data"
-	"github.com/muandrew/battlecode-ladder/graphql"
-	"github.com/muandrew/battlecode-ladder/lazy"
-	"github.com/muandrew/battlecode-ladder/oauth"
-	"github.com/muandrew/battlecode-ladder/utils"
+	"github.com/muandrew/battlecode-ladder-go/auth"
+	"github.com/muandrew/battlecode-ladder-go/build"
+	"github.com/muandrew/battlecode-ladder-go/data"
+	"github.com/muandrew/battlecode-ladder-go/graphql"
+	"github.com/muandrew/battlecode-ladder-go/lazy"
+	"github.com/muandrew/battlecode-ladder-go/oauth"
+	"github.com/muandrew/battlecode-ladder-go/utils"
 	"log"
 )
 

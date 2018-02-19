@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/muandrew/battlecode-ladder/models"
+	"github.com/muandrew/battlecode-ladder-go/models"
 )
 
 type Db interface {

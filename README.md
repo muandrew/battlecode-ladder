@@ -1,4 +1,4 @@
-# Hello World.
+# Battlecode Legacy
 
 This is a project to make off season Battlecode easier to play. The plan is to support multiple years worth of Battlecode but right now only 2017 is supported.
 

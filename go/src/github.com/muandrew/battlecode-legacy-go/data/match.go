@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/muandrew/battlecode-ladder-go/models"
+	"github.com/muandrew/battlecode-legacy-go/models"
 )
 
 type Match struct {

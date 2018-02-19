@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/labstack/gommon/log"
-	"github.com/muandrew/battlecode-ladder-go/utils"
-	"github.com/muandrew/battlecode-ladder-go/data"
-	"github.com/muandrew/battlecode-ladder-go/models"
+	"github.com/muandrew/battlecode-legacy-go/utils"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/models"
 )
 
 func main() {

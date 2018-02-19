@@ -1,6 +1,6 @@
 package models
 
-import "github.com/muandrew/battlecode-ladder-go/utils"
+import "github.com/muandrew/battlecode-legacy-go/utils"
 
 /**
 Resource Access and Management

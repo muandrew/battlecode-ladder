@@ -10,11 +10,11 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder-go/auth"
-	"github.com/muandrew/battlecode-ladder-go/build"
-	"github.com/muandrew/battlecode-ladder-go/data"
-	"github.com/muandrew/battlecode-ladder-go/models"
-	"github.com/muandrew/battlecode-ladder-go/utils"
+	"github.com/muandrew/battlecode-legacy-go/auth"
+	"github.com/muandrew/battlecode-legacy-go/build"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/models"
+	"github.com/muandrew/battlecode-legacy-go/utils"
 )
 
 type LzSite struct {

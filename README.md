@@ -10,7 +10,7 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 * redis 3.2.4
 * unzip
 * source [SOURCE\_ME.sh](./SOURCE\_ME.sh) in your `.bash_profile`/`.bash_rc`
-* copy [example-bcl-env.sh](./go/src/github.com/muandrew/battlecode-ladder-go/example-bcl-env.sh) to your own `bcl_env.sh`.
+* copy [example-bcl-env.sh](./go/src/github.com/muandrew/battlecode-legacy-go/example-bcl-env.sh) to your own `bcl_env.sh`.
 
 **note:** The version numbers are the ones I'm using, and does not mean the exact version is required.
 
@@ -19,7 +19,7 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 
 ## Developing
 1. Do yourself a favor and download [GoLand EAP](https://www.jetbrains.com/go/nextversion/) or if you have a license just use [GoLand](https://www.jetbrains.com/go/).
-2. With GoLand, open `./go/src/github.com/muandrew/battlecode-ladder-go`.
+2. With GoLand, open `./go/src/github.com/muandrew/battlecode-legacy-go`.
 
 **note:** I normally develop with Intellij so it just makes more sense to me. You can use whatever you want.
 

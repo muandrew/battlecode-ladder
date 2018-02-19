@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder-go/auth"
-	"github.com/muandrew/battlecode-ladder-go/build"
-	"github.com/muandrew/battlecode-ladder-go/data"
-	"github.com/muandrew/battlecode-ladder-go/graphql"
-	"github.com/muandrew/battlecode-ladder-go/lazy"
-	"github.com/muandrew/battlecode-ladder-go/oauth"
-	"github.com/muandrew/battlecode-ladder-go/utils"
+	"github.com/muandrew/battlecode-legacy-go/auth"
+	"github.com/muandrew/battlecode-legacy-go/build"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/graphql"
+	"github.com/muandrew/battlecode-legacy-go/lazy"
+	"github.com/muandrew/battlecode-legacy-go/oauth"
+	"github.com/muandrew/battlecode-legacy-go/utils"
 	"log"
 )
 

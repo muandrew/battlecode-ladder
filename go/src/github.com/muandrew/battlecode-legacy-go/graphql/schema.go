@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"github.com/graphql-go/graphql"
 	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-ladder-go/models"
-	"github.com/muandrew/battlecode-ladder-go/data"
-	"github.com/muandrew/battlecode-ladder-go/auth"
+	"github.com/muandrew/battlecode-legacy-go/models"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/auth"
 )
 
 type Request struct {

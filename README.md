@@ -9,7 +9,7 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 * golang 1.8
 * redis 3.2.4
 * unzip
-* source [SOURCE\_ME.sh](./SOURCE\_ME.sh) in your `.bash_profile`/`.bash_rc`
+* source [SOURCEME.sh](./SOURCEME.sh) in your `.bash_profile`/`.bash_rc`
 * copy [example-bcl-env.sh](./go/src/github.com/muandrew/battlecode-legacy-go/example-bcl-env.sh) to your own `bcl_env.sh`.
 
 **note:** The version numbers are the ones I'm using, and does not mean the exact version is required.

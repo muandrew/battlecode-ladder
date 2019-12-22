@@ -53,6 +53,7 @@ func main() {
 			log.Fatalf("Failed to init GraphQL: %s", err)
 		}
 	}
+	e.Static("/doc", "static/doc")
 	e.Static("/bc17", "static/viewer/bc17/res")
 	e.Static("/viewer/bc17", "static/viewer/bc17")
 	e.Static("/replay", ci.GetDirMatches())

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -11,7 +12,6 @@ import (
 	"github.com/muandrew/battlecode-legacy-go/lazy"
 	"github.com/muandrew/battlecode-legacy-go/oauth"
 	"github.com/muandrew/battlecode-legacy-go/utils"
-	"log"
 )
 
 func main() {
@@ -53,8 +53,8 @@ func main() {
 			log.Fatalf("Failed to init GraphQL: %s", err)
 		}
 	}
-	e.Static("/bc17", "viewer/bc17/res")
-	e.Static("/viewer/bc17", "viewer/bc17")
+	e.Static("/bc17", "static/viewer/bc17/res")
+	e.Static("/viewer/bc17", "static/viewer/bc17")
 	e.Static("/replay", ci.GetDirMatches())
 	e.GET("*", getRedirected)
 	e.Logger.Fatal(e.Start(":" + port))

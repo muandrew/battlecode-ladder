@@ -6,7 +6,7 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 
 ## Setup
 * java 8
-* golang 1.8
+* golang 1.13.5
 * redis 3.2.4
 * unzip
 * source [SOURCEME.sh](./SOURCEME.sh) in your `.bash_profile`/`.bash_rc`

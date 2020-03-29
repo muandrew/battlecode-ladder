@@ -1,15 +1,20 @@
 package models
 
 import (
-	"github.com/satori/go.uuid"
 	"errors"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
-	BotMaxName         = 60
-	BotMaxDescription  = 140
-	BotMaxNote         = 140
-	BotMaxPackage      = 60
+	//BotMaxName max size for bot name
+	BotMaxName = 60
+	//BotMaxDescription max size for bot description
+	BotMaxDescription = 140
+	//BotMaxNote max size for note on the bot
+	BotMaxNote = 140
+	//BotMaxPackage max size for bot's package name
+	BotMaxPackage = 60
 )
 
 type Bot struct {

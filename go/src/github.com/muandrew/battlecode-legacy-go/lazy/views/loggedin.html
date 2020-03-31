@@ -7,7 +7,7 @@
 <br>
 
 <h3>Upload Bot</h3>
-<form action="/lazy/loggedin/bot/upload/" method="post" enctype="multipart/form-data">
+<form action="/lazy/loggedin/{{.competition}}/bot/upload/" method="post" enctype="multipart/form-data">
     File: <input type="file" name="file"><br>
     Package: <input type="text" name="package"><br>
     Note: <input type="text" name="note"><br>
@@ -17,7 +17,7 @@
 <br>
 
 <h3>Challenge Bot</h3>
-<form action="/lazy/loggedin/challenge/" method="post" enctype="multipart/form-data">
+<form action="/lazy/loggedin/{{.competition}}/challenge/" method="post" enctype="multipart/form-data">
     Bot A Uuid: <input type="text" name="botUuid"><br>
     Bot B Uuid: <input type="text" name="oppUuid"><br>
     Map Uuid (optional): <input type="text" name="mapUuid"><br>
@@ -27,7 +27,7 @@
 <br>
 
 <h3>Upload Map</h3>
-<form action="/lazy/loggedin/map/upload/" method="post" enctype="multipart/form-data">
+<form action="/lazy/loggedin/{{.competition}}/map/upload/" method="post" enctype="multipart/form-data">
     File: <input type="file" name="file"><br>
     Description: <input type="text" name="description"><br>
     <br>
@@ -36,7 +36,7 @@
 <br>
 
 <h3>Play Round Robin</h3>
-<form action="/lazy/loggedin/challenge-game/" method="post" enctype="multipart/form-data">
+<form action="/lazy/loggedin/{{.competition}}/challenge-game/" method="post" enctype="multipart/form-data">
     Bot Uuids: <input type="text" name="botUuids"><br>
     Name: <input type="text" name="name"><br>
     Description: <input type="text" name="description"><br>
@@ -56,7 +56,7 @@ status: {{.Status}}<br>
 <br>
 
 <h3>Make Bot Public</h3>
-<form action="/lazy/loggedin/bot/public/" method="post" enctype="multipart/form-data">
+<form action="/lazy/loggedin/{{.competition}}/bot/public/" method="post" enctype="multipart/form-data">
     Bot Uuid: <input type="text" name="botUuid"><br>
     <br>
     <input type="submit" value="Make Public">
@@ -64,7 +64,7 @@ status: {{.Status}}<br>
 <br>
 
 <h3>View Public Bots</h3>
-<a href="/lazy/loggedin/bot/public/">link</a>
+<a href="/lazy/loggedin/{{.competition}}/bot/public/">link</a>
 
 <h3>Latest Matches:</h3>
 {{range .latest_matches}}

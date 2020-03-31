@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/muandrew/battlecode-legacy-go/engine"
+	"github.com/muandrew/battlecode-legacy-go/engine/battlecode/bc2017"
+
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-legacy-go/auth"
 	"github.com/muandrew/battlecode-legacy-go/build"
@@ -45,8 +48,9 @@ func main() {
 	}
 	defer ci.Close()
 
+	engines := []engine.Engine{&bc2017.Engine{}}
 	t := lazy.NewInstance()
-	t.Init(e, authentication, db, ci)
+	t.Init(e, authentication, db, ci, engines)
 	if utils.IsDev() {
 		err = graphql.Init(db, e)
 		if err != nil {

@@ -17,16 +17,24 @@ const (
 	BotMaxPackage = 60
 )
 
+//Bot represents a particular build
 type Bot struct {
-	Uuid        string
-	Owner       *Competitor
-	Package     UserString
-	Note        UserString
-	Status      *BuildStatus
-	Competition Competition
+	Uuid            string
+	Owner           *Competitor
+	Package         UserString
+	Note            UserString
+	Status          *BuildStatus
+	Competition     Competition
+	CompetitionMeta string
 }
 
-func CreateBot(owner *Competitor, pkg string, note string, competition Competition) (*Bot, error) {
+//CreateBot creates a bot model
+func CreateBot(
+	owner *Competitor,
+	pkg string, note string,
+	competition Competition,
+	competitionMeta string,
+) (*Bot, error) {
 	if pkg == "" {
 		return nil, errors.New("We need a package to run your bot.")
 	}
@@ -45,6 +53,7 @@ func CreateBot(owner *Competitor, pkg string, note string, competition Competiti
 		uNote,
 		NewBuildStatus(),
 		competition,
+		competitionMeta,
 	}
 	return bot, nil
 }

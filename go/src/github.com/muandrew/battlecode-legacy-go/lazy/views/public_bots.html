@@ -5,14 +5,14 @@
 <body>
 
 <h3>Latest Bots</h3>
-{{range .}}
+{{range .bots}}
     uuid: {{.Uuid}}<br>
     package: {{.Package}}<br>
     note: {{.Note}}<br>
     status: {{.Status}}<br>
 {{end}}
 <br>
-<a href="/lazy/loggedin/">Continue</a>
+<a href="/lazy/loggedin/{{.competition}}/">Continue</a>
 
 </body>
 </html>

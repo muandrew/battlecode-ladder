@@ -1,0 +1,14 @@
+{{define "choose_engine"}}
+<!DOCTYPE html>
+<html lang="en">
+{{template "header"}}
+<body>
+<h3>Choose a competition<h3>
+<br>
+
+{{range .}}
+<a href="/lazy/loggedin/{{.}}/">{{.}}</a></br>
+{{end}}
+</body>
+</html>
+{{end}}

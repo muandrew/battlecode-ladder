@@ -1,6 +1,9 @@
 #!/usr/bin/bash
 
-#todo check if tmux && redis is installed
+bash check_dependency.sh
+if [ ! $? -eq 0 ]; then
+    exit 1
+fi
 
 # if [ -z "$(ps -A | grep redis-server)" ]; then
 if [ -z "$(tmux ls | grep redis)" ]; then
@@ -11,5 +14,11 @@ if [ -z "$(tmux ls | grep redis)" ]; then
     echo "continuing"
 fi
 
-echo "starting server"
+if [ ! -z "$(tmux ls | grep bcl)" ]; then
+    echo "killing existing bcl server"
+    tmux kill-session -t bcl
+fi
+echo "starting bcl server"
 tmux new -d -s bcl 'cd go/src/github.com/muandrew/battlecode-legacy-go && go run main.go'
+
+echo "deploy complete"

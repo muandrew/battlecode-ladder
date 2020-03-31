@@ -4,18 +4,24 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 
 # Usage
 
+All scripts are assumed to be ran from the base directory
+
 ## Setup
 * java 8
 * golang 1.13.5
 * redis 3.2.4
-* unzip
+* all tools in [check_dependency.sh](./check_dependency.sh)
 * source [SOURCEME.sh](./SOURCEME.sh) in your `.bash_profile`/`.bash_rc`
 * copy [example-bcl-env.sh](./go/src/github.com/muandrew/battlecode-legacy-go/example-bcl-env.sh) to your own `bcl_env.sh`.
 
 **note:** The version numbers are the ones I'm using, and does not mean the exact version is required.
 
-## Running
-1. run `launch.sh`
+## Development
+* use `precommit.sh` for any formatting that should be done before comitting
+* use `start_bcl.sh` to just build and start the service.
+
+## Deployment
+1. run `deploy.sh` this should try to start up any services that are needed
 
 ## GraphQL[wip]
 * check out ChromeiQL or other out of the box solutions for an easy way to test the GraphQL endpoint.

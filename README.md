@@ -15,13 +15,7 @@ This is a project to make off season Battlecode easier to play. The plan is to s
 **note:** The version numbers are the ones I'm using, and does not mean the exact version is required.
 
 ## Running
-1. run `debug_run.sh`
-
-## Developing
-1. Do yourself a favor and download [GoLand EAP](https://www.jetbrains.com/go/nextversion/) or if you have a license just use [GoLand](https://www.jetbrains.com/go/).
-2. With GoLand, open `./go/src/github.com/muandrew/battlecode-legacy-go`.
-
-**note:** I normally develop with Intellij so it just makes more sense to me. You can use whatever you want.
+1. run `launch.sh`
 
 ## GraphQL[wip]
 * check out ChromeiQL or other out of the box solutions for an easy way to test the GraphQL endpoint.

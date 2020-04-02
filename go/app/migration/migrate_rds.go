@@ -1,4 +1,4 @@
-package main
+package migration
 
 import (
 	"github.com/garyburd/redigo/redis"
@@ -8,7 +8,8 @@ import (
 	"github.com/muandrew/battlecode-legacy-go/utils"
 )
 
-func main() {
+// Migrate call to migrate data stuff.
+func Migrate() {
 	utils.InitMainEnv()
 	db, _ := data.NewRdsDb(utils.GetRequiredEnvFatal("REDIS_ADDRESS"))
 	err := db.Scan("match:*", func(c redis.Conn, key string) {

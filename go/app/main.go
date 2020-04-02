@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
 	"github.com/muandrew/battlecode-legacy-go/engine"
 	"github.com/muandrew/battlecode-legacy-go/engine/battlecode/bc2017"
+	"github.com/muandrew/battlecode-legacy-go/migration"
 
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-legacy-go/auth"
@@ -19,6 +21,13 @@ import (
 
 func main() {
 	utils.InitMainEnv()
+
+	migratePtr := flag.Bool("migrate", false, "run for migration")
+	flag.Parse()
+	if *migratePtr {
+		migration.Migrate()
+		return
+	}
 
 	initSuccess := true
 	onFail := func() {

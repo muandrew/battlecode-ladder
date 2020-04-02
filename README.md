@@ -11,8 +11,7 @@ All scripts are assumed to be ran from the base directory
 * golang 1.13.5
 * redis 3.2.4
 * all tools in [check_dependency.sh](./check_dependency.sh)
-* source [SOURCEME.sh](./SOURCEME.sh) in your `.bash_profile`/`.bash_rc`
-* copy [example-bcl-env.sh](./go/src/github.com/muandrew/battlecode-legacy-go/example-bcl-env.sh) to your own `bcl_env.sh`.
+* copy [example-bcl-env.sh](./go/app/example-bcl-env.sh) to your own `bcl_env.sh`.
 
 **note:** The version numbers are the ones I'm using, and does not mean the exact version is required.
 

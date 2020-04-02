@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-pushd go/src/github.com/muandrew/battlecode-legacy-go && go run main.go && popd
+pushd go/app && go run main.go && popd

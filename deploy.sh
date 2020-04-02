@@ -19,6 +19,6 @@ if [ ! -z "$(tmux ls | grep bcl)" ]; then
     tmux kill-session -t bcl
 fi
 echo "starting bcl server"
-tmux new -d -s bcl 'cd go/src/github.com/muandrew/battlecode-legacy-go && go run main.go'
+tmux new -d -s bcl 'cd go/app && go run main.go'
 
 echo "deploy complete"

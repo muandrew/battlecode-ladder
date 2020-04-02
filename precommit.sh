@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-pushd go/src/github.com/muandrew/battlecode-legacy-go && go fmt && popd
+pushd go/app && go fmt && popd

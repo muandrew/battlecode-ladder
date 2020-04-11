@@ -5,16 +5,15 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/muandrew/battlecode-legacy-go/engine"
-	"github.com/muandrew/battlecode-legacy-go/engine/battlecode/bc2017"
-	"github.com/muandrew/battlecode-legacy-go/migration"
-
 	"github.com/labstack/echo"
 	"github.com/muandrew/battlecode-legacy-go/auth"
 	"github.com/muandrew/battlecode-legacy-go/build"
 	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/engine"
+	"github.com/muandrew/battlecode-legacy-go/engine/battlecode/bc2017"
 	"github.com/muandrew/battlecode-legacy-go/graphql"
 	"github.com/muandrew/battlecode-legacy-go/lazy"
+	"github.com/muandrew/battlecode-legacy-go/migration"
 	"github.com/muandrew/battlecode-legacy-go/oauth"
 	"github.com/muandrew/battlecode-legacy-go/utils"
 )
@@ -23,9 +22,13 @@ func main() {
 	utils.InitMainEnv()
 
 	migratePtr := flag.Bool("migrate", false, "run for migration")
+	testPtr := flag.Bool("t", false, "tests something")
 	flag.Parse()
 	if *migratePtr {
 		migration.Migrate()
+		return
+	}
+	if *testPtr {
 		return
 	}
 

@@ -20,6 +20,10 @@ import (
 
 func main() {
 	utils.InitMainEnv()
+	engines := []engine.Engine{&bc2017.Engine{}}
+	for _, eng := range engines {
+		eng.ActivateAssets()
+	}
 
 	migratePtr := flag.Bool("migrate", false, "run for migration")
 	testPtr := flag.Bool("t", false, "tests something")
@@ -29,6 +33,12 @@ func main() {
 		return
 	}
 	if *testPtr {
+		var err error = nil
+		if err != nil {
+			log.Printf("err: %s\n", err.Error)
+		} else {
+			log.Printf("all ok")
+		}
 		return
 	}
 
@@ -60,7 +70,6 @@ func main() {
 	}
 	defer ci.Close()
 
-	engines := []engine.Engine{&bc2017.Engine{}}
 	t := lazy.NewInstance()
 	t.Init(e, authentication, db, ci, engines)
 	if utils.IsDev() {

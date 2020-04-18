@@ -177,7 +177,7 @@ func wrapPostUpload(engine engine.Engine, ci *build.Ci) func(context echo.Contex
 		if err != nil {
 			return renderFailure(c, engine, failedUpload, err)
 		}
-		ci.SubmitJob(bot)
+		ci.BuildBot(engine, bot)
 		data := map[string]interface{}{
 			"competition": engine.Competition(),
 		}
@@ -236,7 +236,7 @@ func wrapPostMapUpload(engine engine.Engine, ci *build.Ci) func(context echo.Con
 	}
 }
 
-func wrapPostChallenge(engine engine.Engine, db data.Db, ci *build.Ci) func(context echo.Context) error {
+func wrapPostChallenge(e engine.Engine, db data.Db, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
 		botUuid := c.FormValue("botUuid")
 		oppUuid := c.FormValue("oppUuid")
@@ -248,18 +248,18 @@ func wrapPostChallenge(engine engine.Engine, db data.Db, ci *build.Ci) func(cont
 		if ownBot == nil || oppBot == nil {
 			return renderFailure(
 				c,
-				engine,
+				e,
 				failedChallenge,
 				errors.New("Couldn't find two bots to play."),
 			)
 		}
-		err := ci.RunMatch([]*models.Bot{ownBot, oppBot}, bcMap)
+		err := ci.RunMatch(e, []*models.Bot{ownBot, oppBot}, bcMap)
 
 		if err != nil {
-			return renderFailure(c, engine, failedChallenge, err)
+			return renderFailure(c, e, failedChallenge, err)
 		} else {
 			data := map[string]interface{}{
-				"competition": engine.Competition(),
+				"competition": e.Competition(),
 			}
 			return c.Render(http.StatusOK, "challenged", data)
 		}
@@ -300,6 +300,7 @@ func wrapPostChallengeGame(engine engine.Engine, db data.Db, ci *build.Ci) func(
 
 		bcMap := db.GetBcMap(mapUuid)
 		err := ci.RunGame(
+			engine,
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),
 			name,
 			description,

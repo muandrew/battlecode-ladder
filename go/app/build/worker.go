@@ -14,7 +14,6 @@ func CreateWorkers(workerDir string, numWorkers int) []tunny.TunnyWorker {
 		workers[i] = &worker{
 			id: i,
 		}
-		SetUpWorkspace(workerDir, i)
 	}
 	return workers
 }

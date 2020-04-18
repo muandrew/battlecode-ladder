@@ -3,25 +3,28 @@ package build
 import (
 	"errors"
 	"fmt"
-	"github.com/jeffail/tunny"
-	"github.com/muandrew/battlecode-legacy-go/data"
-	"github.com/muandrew/battlecode-legacy-go/models"
-	"github.com/muandrew/battlecode-legacy-go/utils"
 	"io"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"bufio"
+
+	"github.com/jeffail/tunny"
+	"github.com/labstack/gommon/log"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/engine"
+	"github.com/muandrew/battlecode-legacy-go/models"
+	"github.com/muandrew/battlecode-legacy-go/utils"
 )
 
 const (
-	folderPermission     = 0755
 	forbiddenCharacters  = "~$"
 	errorIllegalArgument = utils.Error("Illegal Argument(s)")
 )
 
+//Ci represents the build system
 type Ci struct {
 	db   data.Db
 	pool *tunny.WorkPool
@@ -39,18 +42,19 @@ func getAndSetupDir(key string, fallback string) (string, error) {
 	if dir == "" {
 		dir = fallback
 	} else if strings.ContainsAny(dir, forbiddenCharacters) {
-		return "", errors.New(fmt.Sprintf("Only relative and absolute pathing are allowed,"+
+		return "", fmt.Errorf("Only relative and absolute pathing are allowed,"+
 			" and if you are using (%s) in your directory structure, consider better names.",
-			forbiddenCharacters))
+			forbiddenCharacters)
 	}
 	dir, err := filepath.Abs(dir)
 	if err != nil {
 		return "", err
 	}
-	os.MkdirAll(dir, folderPermission)
+	os.MkdirAll(dir, utils.FileModeStandardFolder)
 	return dir, nil
 }
 
+//NewCi creates a new instance of Ci
 func NewCi(db data.Db) (*Ci, error) {
 	dirData, err := getAndSetupDir("DIR_DATA", "../bcl-data")
 	if err != nil {
@@ -92,23 +96,25 @@ func NewCi(db data.Db) (*Ci, error) {
 	}, nil
 }
 
+//UploadBotSource uploads a bots source.
 func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
-	return c.upload(file, c.dirBot+"/"+bot.Uuid, "source.jar")
+	return c.upload(file, c.botSourcePath(bot.Uuid))
 }
 
+//UploadMap uploads a map
 func (c *Ci) UploadMap(file *multipart.FileHeader, bcMap *models.BcMap) error {
 	if file == nil || bcMap == nil {
 		return errorIllegalArgument
 	}
-	err := c.upload(file, c.dirMap+"/"+bcMap.Uuid, file.Filename)
+	err := c.upload(file, filepath.Join(c.dirMap, bcMap.Uuid, file.Filename))
 	if err != nil {
 		return err
 	}
 	return c.db.CreateBcMap(bcMap)
 }
 
-func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string) error {
-	if file == nil || destDir == "" || destFile == "" {
+func (c *Ci) upload(file *multipart.FileHeader, dest string) error {
+	if file == nil || dest == "" {
 		return errorIllegalArgument
 	}
 	src, err := file.Open()
@@ -118,8 +124,8 @@ func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string)
 	defer src.Close()
 
 	// Destination
-	os.MkdirAll(destDir, folderPermission)
-	dst, err := os.Create(destDir + "/" + destFile)
+	os.MkdirAll(filepath.Dir(dest), utils.FileModeStandardFolder)
+	dst, err := os.Create(dest)
 	if err != nil {
 		return err
 	}
@@ -132,14 +138,46 @@ func (c *Ci) upload(file *multipart.FileHeader, destDir string, destFile string)
 	return nil
 }
 
-func (c *Ci) SubmitJob(bot *models.Bot) {
+//BuildBot builds a bot
+func (c *Ci) BuildBot(eng engine.Engine, bot *models.Bot) {
 	bot.Status.SetQueued()
 	c.db.CreateBot(bot)
 	c.pool.SendWorkAsync(func(workerId int) {
 		bot.Status.SetStart()
 		c.db.UpdateBot(bot)
-		err := utils.RunShell("bash", []string{"scripts/build-bot.sh", c.dirBot, bot.Uuid})
+		var err error
+
+		// prep the workspace
+		workspaceDir := c.workspaceDir(workerId)
+		dirReset(workspaceDir)
+
+		// copy the soruces over
+		if err == nil {
+			err = utils.CopyPlain(
+				c.botSourcePath(bot.Uuid),
+				filepath.Join(workspaceDir, "source.zip"),
+			)
+		}
+		if err == nil {
+			// let the engine do prep work
+			err = eng.BuildBotSetup(
+				workerId,
+				workspaceDir,
+				bot.Uuid,
+			)
+		}
+		if err == nil {
+			err = c.runRun(workspaceDir)
+		}
+		if err == nil {
+			err = utils.CopyPlain(
+				filepath.Join(workspaceDir, "result.zip"),
+				c.botResultPath(bot.Uuid),
+			)
+		}
+		// updating model
 		if err != nil {
+			log.Errorf("ERR: %s", err.Error())
 			bot.Status.SetFailure()
 		} else {
 			bot.Status.SetSuccess()
@@ -148,82 +186,110 @@ func (c *Ci) SubmitJob(bot *models.Bot) {
 	}, nil)
 }
 
-func (c *Ci) RunMatch(bots []*models.Bot, bcMap *models.BcMap) error {
+//RunMatch runs a single match
+func (c *Ci) RunMatch(e engine.Engine, bots []*models.Bot, bcMap *models.BcMap) error {
 	if len(bots) != 2 {
-		return errors.New("Currently only support 1v1.");
+		return errors.New("Currently only support 1v1")
 	}
 	match, err := models.CreateMatch(bots, bcMap)
 	if err != nil {
 		return err
 	}
-	return c.RunMatchWithModel(match, bcMap)
+	return c.RunMatchWithModel(e, match, bcMap)
 }
 
-func (c *Ci) RunMatchWithModel(match *models.Match, bcMap *models.BcMap) error {
-	bot1 := match.Bots[0];
-	bot2 := match.Bots[1];
-	mapDir := ""
-	mapName := ""
-	if bcMap != nil {
-		basename := bcMap.Name.GetRawString()
-		mapDir = c.dirMap + "/" + bcMap.Uuid
-		mapName = strings.TrimSuffix(basename, filepath.Ext(basename))
-	}
+//RunMatchWithModel runs a single match
+func (c *Ci) RunMatchWithModel(
+	e engine.Engine,
+	match *models.Match,
+	bcMap *models.BcMap,
+) error {
 	match.Status.SetQueued()
 	c.db.CreateMatch(match)
 	c.pool.SendWorkAsync(func(workerId int) {
 		match.Status.SetStart()
 		c.db.UpdateMatch(match)
-		winner := models.WinnerNone
-		err := utils.RunShellWithScan(
-			"bash",
-			[]string{
-				"scripts/run-match.sh",
-				c.dirBot,
-				c.dirMatch,
-				c.dirWorker,
-				strconv.Itoa(workerId),
-				match.Uuid,
-				bot1.Uuid,
-				bot1.Package.GetPackageFormat(),
-				bot2.Uuid,
-				bot2.Package.GetPackageFormat(),
-				mapDir,
-				mapName,
-			},
-			func(scanner *bufio.Scanner) {
-				for scanner.Scan() {
-					line := scanner.Text()
-					if strings.Contains(line, "wins (round") {
-						index := strings.IndexRune(line, '(')
-						if index != -1 {
-							switch line[index+1] {
-							case 'A':
-								winner = 0
-							case 'B':
-								winner = 1
-							default:
-								winner = models.WinnerNone
-							}
-						}
-					}
-					fmt.Printf("%s\n", line)
+		var err error
+
+		// prep the workspace
+		workspaceDir := c.workspaceDir(workerId)
+		dirReset(workspaceDir)
+
+		//there prob needs to be more specialization with map copy
+		if err == nil && bcMap != nil {
+			mapFileName := bcMap.Name.GetRawString()
+			mapWorkspaceDir := filepath.Join(workspaceDir, "map")
+			err = os.MkdirAll(mapWorkspaceDir, utils.FileModeStandardFolder)
+			err = utils.CopyPlain(
+				filepath.Join(c.mapPath(bcMap.Uuid), mapFileName),
+				filepath.Join(mapWorkspaceDir, mapFileName),
+			)
+		}
+		if err == nil {
+			// copy over the results
+			for idx, bot := range match.Bots {
+				err = utils.CopyPlain(
+					c.botResultPath(bot.Uuid),
+					filepath.Join(workspaceDir, fmt.Sprintf("bot%d.zip", idx)),
+				)
+				if err != nil {
+					break
 				}
-			},
-			utils.BasicScanFunc,
-		)
+			}
+		}
+		if err == nil {
+			// allow each engine to run its own setup.
+			err = e.BattleBotSetup(
+				workerId,
+				workspaceDir,
+				match,
+			)
+		}
+		if err == nil {
+			err = c.runRun(workspaceDir)
+		}
+		matchPath := c.matchPath(match.Uuid)
+		if err == nil {
+			err = os.MkdirAll(matchPath, utils.FileModeStandardFolder)
+		}
+		if err == nil {
+			err = utils.CopyPlain(
+				filepath.Join(workspaceDir, "result.zip"),
+				filepath.Join(matchPath, "result.zip"),
+			)
+		}
+		if err == nil {
+			err = utils.Unzip(matchPath, "result.zip", "result")
+		}
+		if err == nil {
+			err = e.BattleBotPostProcessing(
+				matchPath,
+				match,
+			)
+		}
+		// updating model
 		if err != nil {
+			log.Errorf("ERR: %s", err.Error())
 			match.Status.SetFailure()
 		} else {
 			match.Status.SetSuccess()
-			match.Winner = winner
 		}
 		c.db.UpdateMatch(match)
 	}, nil)
 	return nil
 }
 
+func (c *Ci) runRun(workspaceDir string) error {
+	cmd := exec.Command("bash", "run.sh")
+	cmd.Dir = workspaceDir
+	// work on removing as many variables as possible
+	//cmd.Env = []string{}
+	return cmd.Run()
+}
+
+//RunGame execute a series of matches
 func (c *Ci) RunGame(
+	eng engine.Engine,
 	owner *models.Competitor,
 	name string,
 	description string,
@@ -231,7 +297,7 @@ func (c *Ci) RunGame(
 	bcMap *models.BcMap) error {
 
 	if bots == nil {
-		return errors.New("Bots should not be empty.")
+		return errors.New("Bots should not be empty")
 	}
 	game, err := models.CreateGameRoundRobin(
 		owner,
@@ -245,29 +311,45 @@ func (c *Ci) RunGame(
 		return err
 	}
 	for _, match := range game.Matches {
-		err = c.RunMatchWithModel(match, nil)
+		err = c.RunMatchWithModel(eng, match, nil)
 		if err != nil {
 			return err
 		}
 	}
-	return nil;
+	return nil
 }
 
+//Close call to cleanup all resources
 func (c *Ci) Close() {
 	c.pool.Close()
 }
 
+//GetDirMatches returns the directory where match results are
 func (c *Ci) GetDirMatches() string {
 	return c.dirMatch
 }
 
-func SetUpWorkspace(workerDir string, workerId int) {
-	utils.FatalRunShell(
-		"bash",
-		[]string{
-			"scripts/setup-worker-match-workspace.sh",
-			workerDir,
-			strconv.Itoa(workerId),
-		},
-	)
+func dirReset(dir string) {
+	os.RemoveAll(dir)
+	os.MkdirAll(dir, utils.FileModeStandardFolder)
+}
+
+func (c *Ci) botSourcePath(botUUID string) string {
+	return filepath.Join(c.dirBot, botUUID, "source.zip")
+}
+
+func (c *Ci) botResultPath(botUUID string) string {
+	return filepath.Join(c.dirBot, botUUID, "result.zip")
+}
+
+func (c *Ci) mapPath(mapUUID string) string {
+	return filepath.Join(c.dirMap, mapUUID)
+}
+
+func (c *Ci) matchPath(matchUUID string) string {
+	return filepath.Join(c.dirMatch, matchUUID)
+}
+
+func (c *Ci) workspaceDir(workerID int) string {
+	return filepath.Join(c.dirWorker, strconv.Itoa(workerID))
 }

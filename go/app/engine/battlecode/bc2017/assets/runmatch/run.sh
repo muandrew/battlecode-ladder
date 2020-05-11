@@ -5,9 +5,7 @@
 # run.sh # this file
 # source.sh # any params that needed to be passed
 
-mkdir -p result
-
-source source.sh
+# Things that should be sourced
 # WORKER_ID
 # BOT_0_NAME
 # BOT_1_NAME
@@ -16,8 +14,8 @@ map_name() {
     ls -1 -t map | head -1
 }
 
-sunzip-cli bot0.zip -ms 15 -mm 10240 -md 102400 -d bot0 >> result/log.txt 2>&1
-sunzip-cli bot1.zip -ms 15 -mm 10240 -md 102400 -d bot1 >> result/log.txt 2>&1
+sunzip-cli bot0.zip -ms 15 -mm 10240 -md 102400 -d bot0
+sunzip-cli bot1.zip -ms 15 -mm 10240 -md 102400 -d bot1
 
 DIR_MAPS=""
 MAP_NAME=""
@@ -44,10 +42,5 @@ chmod +x gradlew
 -PmatchUrl=${MATCH_OUTPUT} \
 -PmapsUrl=${DIR_MAPS} \
 -Pmaps=${MAP_NAME} \
--Pwebsocket=$(( 8700 + WORKER_ID )) >> ../result/log.txt 2>&1
-popd
-
-# zip up all files and put it back at root
-pushd result
-zip ../result.zip -r .
+-Pwebsocket=$(( 8700 + WORKER_ID ))
 popd

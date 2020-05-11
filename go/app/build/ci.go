@@ -280,7 +280,14 @@ func (c *Ci) RunMatchWithModel(
 }
 
 func (c *Ci) runRun(workspaceDir string) error {
-	cmd := exec.Command("bash", "run.sh")
+	err := utils.CopyFromPkgr(
+		"/engine/assets/runner.sh",
+		filepath.Join(workspaceDir, "runner.sh"),
+	)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("bash", "runner.sh")
 	cmd.Dir = workspaceDir
 	// work on removing as many variables as possible
 	//cmd.Env = []string{}

@@ -36,7 +36,7 @@ func CreateBot(
 	competitionMeta string,
 ) (*Bot, error) {
 	if pkg == "" {
-		return nil, errors.New("We need a package to run your bot.")
+		return nil, errors.New("We need a package to run your bot")
 	}
 	uPkg, err := NewUserString(pkg, BotMaxPackage, RegexBlacklist(RegexFilterPackage))
 	if err != nil {

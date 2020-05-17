@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -45,6 +44,6 @@ func filenameToCompetition(filename string) (Competition, error) {
 	case ext == ".map17":
 		return CompetitionBC17, nil
 	default:
-		return "", errors.New(fmt.Sprintf("Unknown Extension type: %q", ext))
+		return "", fmt.Errorf("Unknown Extension type: %q", ext)
 	}
 }

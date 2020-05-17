@@ -280,9 +280,9 @@ func wrapPostChallengeGame(engine engine.Engine, db data.Db, ci *build.Ci) func(
 				c,
 				engine,
 				failedChallenge,
-				errors.New(fmt.Sprintf(
+				fmt.Errorf(
 					"Too many fights the server will explode! The current max is %d",
-					maxBotsInGame)))
+					maxBotsInGame))
 		}
 		bots := make([]*models.Bot, len(botUUIDs), len(botUUIDs))
 		for i, botUUID := range botUUIDs {
@@ -292,7 +292,7 @@ func wrapPostChallengeGame(engine engine.Engine, db data.Db, ci *build.Ci) func(
 					c,
 					engine,
 					failedChallenge,
-					errors.New(fmt.Sprintf("Couldn't find bot %s", botUUID)))
+					fmt.Errorf("Couldn't find bot %s", botUUID))
 			} else {
 				bots[i] = bot
 			}

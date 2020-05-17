@@ -28,10 +28,10 @@ func CreateMatch(bots []*Bot, bcMap *BcMap) (*Match, error) {
 	competition := bots[0].Competition
 	for _, bot := range bots {
 		if bot == nil {
-			return nil, errors.New("Nil bot received.")
+			return nil, errors.New("Nil bot received")
 		}
 		if competition != bot.Competition {
-			return nil, errors.New("Bots from different competitions can't play with each other.")
+			return nil, errors.New("Bots from different competitions can't play with each other")
 		}
 	}
 	mapUUID := ""

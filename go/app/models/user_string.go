@@ -11,8 +11,8 @@ type UserStringFilter func(interface{}) (string, error)
 
 const (
 	RegexFilterFilename = "[^a-zA-Z0-9_.]"
-	RegexFilterPackage = "[^a-zA-Z_.]"
-	RegexFilterText    = "[<>]"
+	RegexFilterPackage  = "[^a-zA-Z_.]"
+	RegexFilterText     = "[<>]"
 )
 
 func RegexBlacklist(regexString string) func(s string) error {
@@ -22,7 +22,7 @@ func RegexBlacklist(regexString string) func(s string) error {
 			return err
 		}
 		if match {
-			return errors.New("Illegal character detected.")
+			return errors.New("Illegal character detected")
 		} else {
 			return nil
 		}

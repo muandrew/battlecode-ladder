@@ -373,7 +373,7 @@ func GetModel(c redis.Conn, key string, model interface{}) error {
 	if bin != nil {
 		return json.Unmarshal(bin.([]byte), model)
 	}
-	return errors.New(fmt.Sprintf("Couldn't find model for key: %q", key))
+	return fmt.Errorf("Couldn't find model for key: %q", key)
 }
 
 func SendModel(c redis.Conn, action string, key string, model interface{}) error {

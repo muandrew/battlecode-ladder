@@ -1,15 +1,13 @@
 package models
 
-import (
-	"github.com/satori/go.uuid"
-)
+import uuid "github.com/satori/go.uuid"
 
 const (
 	GameTypeRoundRobin = "roundRobin"
 )
 
 type Game struct {
-	Uuid        string
+	UUID        string
 	Owner       *Competitor
 	Competition Competition
 	Type        string
@@ -42,7 +40,7 @@ func CreateGameRoundRobin(
 	}
 	numBots := len(bots)
 	matches := make([]*Match, numBots*numBots-numBots)
-	var idx = 0;
+	var idx = 0
 	for i, a := range bots {
 		for j, b := range bots {
 			if i == j {
@@ -50,7 +48,7 @@ func CreateGameRoundRobin(
 			} else {
 				match, err := CreateMatch([]*Bot{a, b}, bcMap)
 				if err != nil {
-					return nil, err;
+					return nil, err
 				}
 				matches[idx] = match
 				idx++

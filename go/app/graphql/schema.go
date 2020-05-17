@@ -4,18 +4,19 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
 	"github.com/graphql-go/graphql"
 	"github.com/labstack/echo"
-	"github.com/muandrew/battlecode-legacy-go/models"
-	"github.com/muandrew/battlecode-legacy-go/data"
 	"github.com/muandrew/battlecode-legacy-go/auth"
+	"github.com/muandrew/battlecode-legacy-go/data"
+	"github.com/muandrew/battlecode-legacy-go/models"
 )
 
 type Request struct {
 	Query string `json:"query"`
 }
 
-func NewPageType(gqlType graphql.Type, titleSingular string, plural string) (*graphql.Object) {
+func NewPageType(gqlType graphql.Type, titleSingular string, plural string) *graphql.Object {
 	return graphql.NewObject(graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%sPage", titleSingular),
 		Description: fmt.Sprintf("A result for asking for a list of %s.", plural),
@@ -54,11 +55,11 @@ func rootQuery(db data.Db) *graphql.Object {
 		Fields: graphql.Fields{
 			"uuid": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.String),
-				Name:        "BotUuid",
+				Name:        "BotUUID",
 				Description: "A bot's uuid.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if m, ok := p.Source.(*models.Bot); ok {
-						return m.Uuid, nil
+						return m.UUID, nil
 					}
 					return nil, nil
 				},
@@ -94,11 +95,11 @@ func rootQuery(db data.Db) *graphql.Object {
 		Fields: graphql.Fields{
 			"uuid": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.String),
-				Name:        "Uuid of the map",
+				Name:        "UUID of the map",
 				Description: "A map's uuid.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if m, ok := p.Source.(*models.BcMap); ok {
-						return m.Uuid, nil
+						return m.UUID, nil
 					}
 					return nil, nil
 				},
@@ -137,17 +138,17 @@ func rootQuery(db data.Db) *graphql.Object {
 				Description: "https://segment.com/blog/a-brief-history-of-the-uuid/",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if m, ok := p.Source.(*data.Match); ok {
-						return m.Uuid, nil
+						return m.UUID, nil
 					}
 					return nil, nil
 				},
 			},
-			"mapUuid": &graphql.Field{
+			"mapUUID": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The user's display name.",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if m, ok := p.Source.(*data.Match); ok {
-						return m.MapUuid, nil
+						return m.MapUUID, nil
 					}
 					return nil, nil
 				},
@@ -157,10 +158,10 @@ func rootQuery(db data.Db) *graphql.Object {
 				Description: "The map the game was played on",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					if m, ok := p.Source.(*data.Match); ok {
-						if m.MapUuid == "" {
+						if m.MapUUID == "" {
 							return nil, nil
 						} else {
-							return db.GetBcMap(m.MapUuid), nil
+							return db.GetBcMap(m.MapUUID), nil
 						}
 					}
 					return nil, nil
@@ -185,7 +186,7 @@ func rootQuery(db data.Db) *graphql.Object {
 							Description: "https://segment.com/blog/a-brief-history-of-the-uuid/",
 							Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 								if user, ok := p.Source.(*models.User); ok {
-									return user.Uuid, nil
+									return user.UUID, nil
 								}
 								return nil, nil
 							},
@@ -216,7 +217,7 @@ func rootQuery(db data.Db) *graphql.Object {
 							Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 								if user, ok := p.Source.(*models.User); ok {
 									page, _ := db.GetDataMatches(
-										user.Uuid,
+										user.UUID,
 										p.Args["page"].(int),
 										p.Args["pageSize"].(int),
 									)
@@ -290,11 +291,11 @@ func schema(db data.Db) (graphql.Schema, error) {
 	})
 }
 
-func executeQuery(schema graphql.Schema, query string, viewerUuid string) *graphql.Result {
+func executeQuery(schema graphql.Schema, query string, viewerUUID string) *graphql.Result {
 	result := graphql.Do(graphql.Params{
 		Schema:        schema,
 		RequestString: query,
-		Context:       context.WithValue(context.Background(), "viewer", viewerUuid),
+		Context:       context.WithValue(context.Background(), "viewer", viewerUUID),
 	})
 	if len(result.Errors) > 0 {
 		fmt.Printf("wrong result, unexpected errors: %v", result.Errors)
@@ -311,7 +312,7 @@ func Init(db data.Db, e *echo.Echo) error {
 		result := executeQuery(
 			schema,
 			context.QueryParam("query"),
-			auth.GetUuid(context),
+			auth.GetUUID(context),
 		)
 		return context.JSON(http.StatusOK, result)
 	})
@@ -324,7 +325,7 @@ func Init(db data.Db, e *echo.Echo) error {
 		result := executeQuery(
 			schema,
 			request.Query,
-			auth.GetUuid(context),
+			auth.GetUUID(context),
 		)
 		return context.JSON(http.StatusOK, result)
 	})

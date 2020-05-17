@@ -1,8 +1,6 @@
 package models
 
-import (
-	"github.com/satori/go.uuid"
-)
+import uuid "github.com/satori/go.uuid"
 
 type SetupNewUser func() *User
 
@@ -11,7 +9,7 @@ const (
 )
 
 type User struct {
-	Uuid string
+	UUID string
 	Name UserString
 }
 

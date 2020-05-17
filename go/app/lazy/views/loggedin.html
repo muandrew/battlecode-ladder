@@ -18,9 +18,9 @@
 
 <h3>Challenge Bot</h3>
 <form action="/lazy/loggedin/{{.competition}}/challenge/" method="post" enctype="multipart/form-data">
-    Bot A Uuid: <input type="text" name="botUuid"><br>
-    Bot B Uuid: <input type="text" name="oppUuid"><br>
-    Map Uuid (optional): <input type="text" name="mapUuid"><br>
+    Bot A UUID: <input type="text" name="botUUID"><br>
+    Bot B UUID: <input type="text" name="oppUUID"><br>
+    Map UUID (optional): <input type="text" name="mapUUID"><br>
     <br>
     <input type="submit" value="Challenge Bot">
 </form>
@@ -37,10 +37,10 @@
 
 <h3>Play Round Robin</h3>
 <form action="/lazy/loggedin/{{.competition}}/challenge-game/" method="post" enctype="multipart/form-data">
-    Bot Uuids: <input type="text" name="botUuids"><br>
+    Bot UUIDs: <input type="text" name="botUUIDs"><br>
     Name: <input type="text" name="name"><br>
     Description: <input type="text" name="description"><br>
-    Map Uuid (optional): <input type="text" name="mapUuid"><br>
+    Map UUID (optional): <input type="text" name="mapUUID"><br>
     <br>
     <input type="submit" value="Start">
 </form>
@@ -48,7 +48,7 @@
 
 <h3>Latest Bots</h3>
 {{range .latest_bots}}
-uuid: {{.Uuid}}<br>
+uuid: {{.UUID}}<br>
 package: {{.Package}}<br>
 note: {{.Note}}<br>
 status: {{.Status}}<br>
@@ -57,7 +57,7 @@ status: {{.Status}}<br>
 
 <h3>Make Bot Public</h3>
 <form action="/lazy/loggedin/{{.competition}}/bot/public/" method="post" enctype="multipart/form-data">
-    Bot Uuid: <input type="text" name="botUuid"><br>
+    Bot UUID: <input type="text" name="botUUID"><br>
     <br>
     <input type="submit" value="Make Public">
 </form>
@@ -71,13 +71,13 @@ status: {{.Status}}<br>
 bots: {{range .Bots}} {{.Package}} {{end}}<br>
 winner: {{.Winner}}<br>
 time: {{.Status}}<br>
-<a href="/viewer/{{.Competition}}/?{{.Uuid}}/result/replay">replay</a><br>
+<a href="/viewer/{{.Competition}}/?{{.UUID}}/result/replay">replay</a><br>
 {{end}}
 <br>
 
 <h3>Latest Maps:</h3>
 {{range .latest_maps}}
-uuid: {{.Uuid}}<br>
+uuid: {{.UUID}}<br>
 name: {{.Name}}<br>
 description: {{.Description}}<br>
 {{end}}

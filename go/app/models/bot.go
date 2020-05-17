@@ -19,7 +19,7 @@ const (
 
 //Bot represents a particular build
 type Bot struct {
-	Uuid            string
+	UUID            string
 	Owner           *Competitor
 	Package         UserString
 	Note            UserString

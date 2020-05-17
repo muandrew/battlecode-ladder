@@ -98,7 +98,7 @@ func NewCi(db data.Db) (*Ci, error) {
 
 //UploadBotSource uploads a bots source.
 func (c *Ci) UploadBotSource(file *multipart.FileHeader, bot *models.Bot) error {
-	return c.upload(file, c.botSourcePath(bot.Uuid))
+	return c.upload(file, c.botSourcePath(bot.UUID))
 }
 
 //UploadMap uploads a map
@@ -106,7 +106,7 @@ func (c *Ci) UploadMap(file *multipart.FileHeader, bcMap *models.BcMap) error {
 	if file == nil || bcMap == nil {
 		return errorIllegalArgument
 	}
-	err := c.upload(file, filepath.Join(c.dirMap, bcMap.Uuid, file.Filename))
+	err := c.upload(file, filepath.Join(c.dirMap, bcMap.UUID, file.Filename))
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (c *Ci) BuildBot(eng engine.Engine, bot *models.Bot) {
 		// copy the soruces over
 		if err == nil {
 			err = utils.CopyPlain(
-				c.botSourcePath(bot.Uuid),
+				c.botSourcePath(bot.UUID),
 				filepath.Join(workspaceDir, "source.zip"),
 			)
 		}
@@ -163,7 +163,7 @@ func (c *Ci) BuildBot(eng engine.Engine, bot *models.Bot) {
 			err = eng.BuildBotSetup(
 				workerId,
 				workspaceDir,
-				bot.Uuid,
+				bot.UUID,
 			)
 		}
 		if err == nil {
@@ -172,7 +172,7 @@ func (c *Ci) BuildBot(eng engine.Engine, bot *models.Bot) {
 		if err == nil {
 			err = utils.CopyPlain(
 				filepath.Join(workspaceDir, "result.zip"),
-				c.botResultPath(bot.Uuid),
+				c.botResultPath(bot.UUID),
 			)
 		}
 		// updating model
@@ -221,7 +221,7 @@ func (c *Ci) RunMatchWithModel(
 			mapWorkspaceDir := filepath.Join(workspaceDir, "map")
 			err = os.MkdirAll(mapWorkspaceDir, utils.FileModeStandardFolder)
 			err = utils.CopyPlain(
-				filepath.Join(c.mapPath(bcMap.Uuid), mapFileName),
+				filepath.Join(c.mapPath(bcMap.UUID), mapFileName),
 				filepath.Join(mapWorkspaceDir, mapFileName),
 			)
 		}
@@ -229,7 +229,7 @@ func (c *Ci) RunMatchWithModel(
 			// copy over the results
 			for idx, bot := range match.Bots {
 				err = utils.CopyPlain(
-					c.botResultPath(bot.Uuid),
+					c.botResultPath(bot.UUID),
 					filepath.Join(workspaceDir, fmt.Sprintf("bot%d.zip", idx)),
 				)
 				if err != nil {
@@ -248,7 +248,7 @@ func (c *Ci) RunMatchWithModel(
 		if err == nil {
 			err = c.runRun(workspaceDir)
 		}
-		matchPath := c.matchPath(match.Uuid)
+		matchPath := c.matchPath(match.UUID)
 		if err == nil {
 			err = os.MkdirAll(matchPath, utils.FileModeStandardFolder)
 		}

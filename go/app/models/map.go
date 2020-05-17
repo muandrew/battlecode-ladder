@@ -1,14 +1,15 @@
 package models
 
 import (
-	"github.com/satori/go.uuid"
-	"path/filepath"
 	"errors"
 	"fmt"
+	"path/filepath"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type BcMap struct {
-	Uuid        string
+	UUID        string
 	Owner       *Competitor
 	Competition Competition
 	Name        UserString

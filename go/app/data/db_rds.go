@@ -45,13 +45,13 @@ func (db *RdsDb) Ping() error {
 	}
 }
 
-func (db *RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() *models.User) *models.User {
+func (db *RdsDb) GetUserWithApp(app string, appUUID string, generateUser func() *models.User) *models.User {
 	c := db.pool.Get()
 	defer c.Close()
-	appKey := "oauth" + ":" + app + ":" + appUuid
-	userUuid, _ := redis.String(c.Do("GET", appKey))
-	if userUuid != "" {
-		userBin, err := c.Do("GET", "user:"+userUuid)
+	appKey := "oauth" + ":" + app + ":" + appUUID
+	userUUID, _ := redis.String(c.Do("GET", appKey))
+	if userUUID != "" {
+		userBin, err := c.Do("GET", "user:"+userUUID)
 		if err != nil {
 			return nil
 		}
@@ -63,10 +63,10 @@ func (db *RdsDb) GetUserWithApp(app string, appUuid string, generateUser func() 
 		}
 	} else {
 		user := generateUser()
-		key := "user:" + user.Uuid
+		key := "user:" + user.UUID
 		userBin, _ := json.Marshal(user)
 		c.Do("SET", key, userBin)
-		c.Do("SET", appKey, user.Uuid)
+		c.Do("SET", appKey, user.UUID)
 		return user
 	}
 	return nil
@@ -80,7 +80,7 @@ func (db *RdsDb) GetUser(uuid string) *models.User {
 
 func (db *RdsDb) GetBot(uuid string) *models.Bot {
 	model := &models.Bot{}
-	err := db.getModelForKey(model, getBotKeyWithUuid(uuid))
+	err := db.getModelForKey(model, getBotKeyWithUUID(uuid))
 	if err != nil {
 		return nil
 	}
@@ -95,7 +95,7 @@ func (db *RdsDb) CreateBot(model *models.Bot) error {
 	if err != nil {
 		return err
 	}
-	err = c.Send(addLpush, getPrefix(model.Owner)+":bot-list", model.Uuid)
+	err = c.Send(addLpush, getPrefix(model.Owner)+":bot-list", model.UUID)
 	if err != nil {
 		return err
 	}
@@ -107,21 +107,21 @@ func (db *RdsDb) UpdateBot(model *models.Bot) error {
 	return db.setModelForKey(model, getBotKey(model))
 }
 
-func (db *RdsDb) GetBots(userUuid string, page int, pageSize int) ([]*models.Bot, int) {
+func (db *RdsDb) GetBots(userUUID string, page int, pageSize int) ([]*models.Bot, int) {
 	c := db.pool.Get()
 	defer c.Close()
-	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":bot-list"))
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUUID+":bot-list"))
 	start := page * pageSize
 	end := start + pageSize - 1
-	botUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":bot-list", start, end))
+	botUUIDs, err := redis.Strings(c.Do("LRANGE", "user:"+userUUID+":bot-list", start, end))
 	if err != nil {
 		return nil, 0
 	}
-	bots := make([]*models.Bot, len(botUuids))
+	bots := make([]*models.Bot, len(botUUIDs))
 
-	for i, botUuid := range botUuids {
+	for i, botUUID := range botUUIDs {
 		bot := &models.Bot{}
-		err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
+		err = GetModel(c, getBotKeyWithUUID(botUUID), bot)
 		if err != nil {
 			return nil, 0
 		}
@@ -134,16 +134,16 @@ func (db *RdsDb) GetPublicBots(page int, pageSize int) ([]*models.Bot, int) {
 	c := db.pool.Get()
 	defer c.Close()
 
-	botUuids, err := redis.Strings(c.Do("ZREVRANGE", "public:bot-list", 0, -1))
+	botUUIDs, err := redis.Strings(c.Do("ZREVRANGE", "public:bot-list", 0, -1))
 	if err != nil {
 		return nil, 0
 	}
 
-	length := len(botUuids)
+	length := len(botUUIDs)
 	bots := make([]*models.Bot, length)
-	for i, botUuid := range botUuids {
+	for i, botUUID := range botUUIDs {
 		bot := &models.Bot{}
-		err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
+		err = GetModel(c, getBotKeyWithUUID(botUUID), bot)
 		if err != nil {
 			return nil, 0
 		}
@@ -152,19 +152,19 @@ func (db *RdsDb) GetPublicBots(page int, pageSize int) ([]*models.Bot, int) {
 	return bots, length
 }
 
-func (db *RdsDb) SetPublicBot(userUuid string, botUuid string) (*models.Bot, error) {
+func (db *RdsDb) SetPublicBot(userUUID string, botUUID string) (*models.Bot, error) {
 	c := db.pool.Get()
 	defer c.Close()
 
-	currentBotUuid, _ := redis.String(c.Do("GET", "user:"+userUuid+":public-bot"))
+	currentBotUUID, _ := redis.String(c.Do("GET", "user:"+userUUID+":public-bot"))
 
 	bot := &models.Bot{}
-	err := GetModel(c, getBotKeyWithUuid(botUuid), bot)
+	err := GetModel(c, getBotKeyWithUUID(botUUID), bot)
 	if err != nil {
 		return nil, err
 	}
 
-	if bot.Owner.Uuid != userUuid {
+	if bot.Owner.UUID != userUUID {
 		return nil, errors.New("you can only set your own bot")
 	}
 	if bot.Status.Status != models.BuildStatusSuccess {
@@ -173,28 +173,28 @@ func (db *RdsDb) SetPublicBot(userUuid string, botUuid string) (*models.Bot, err
 
 	// user removing public bot
 	if bot == nil {
-		if currentBotUuid != "" {
-			err := c.Send("DEL", "user:"+userUuid+":public-bot")
+		if currentBotUUID != "" {
+			err := c.Send("DEL", "user:"+userUUID+":public-bot")
 			if err != nil {
 				return nil, err
 			}
-			err = c.Send("ZREM", "public:bot-list", currentBotUuid)
+			err = c.Send("ZREM", "public:bot-list", currentBotUUID)
 			if err != nil {
 				return nil, err
 			}
 		}
 	} else {
-		err = c.Send("SET", "user:"+userUuid+":public-bot", bot.Uuid)
+		err = c.Send("SET", "user:"+userUUID+":public-bot", bot.UUID)
 		if err != nil {
 			return nil, err
 		}
-		if currentBotUuid != "" {
-			err = c.Send("ZREM", "public:bot-list", currentBotUuid)
+		if currentBotUUID != "" {
+			err = c.Send("ZREM", "public:bot-list", currentBotUUID)
 			if err != nil {
 				return nil, err
 			}
 		}
-		err = c.Send("ZADD", "public:bot-list", time.Now().Unix(), bot.Uuid)
+		err = c.Send("ZADD", "public:bot-list", time.Now().Unix(), bot.UUID)
 		if err != nil {
 			return nil, err
 		}
@@ -218,7 +218,7 @@ func (db *RdsDb) CreateMatch(model *models.Match) error {
 	for _, bot := range model.Bots {
 		ownerPrefix := getPrefix(bot.Owner)
 		if !done[ownerPrefix] {
-			err := c.Send(addLpush, ownerPrefix+":match-list", model.Uuid)
+			err := c.Send(addLpush, ownerPrefix+":match-list", model.UUID)
 			if err != nil {
 				return err
 			}
@@ -233,9 +233,9 @@ func (db *RdsDb) UpdateMatch(model *models.Match) error {
 	return db.setModelForKey(CreateMatch(model), getMatchKey(model))
 }
 
-func (db *RdsDb) GetMatch(matchUuid string) (*Match, error) {
+func (db *RdsDb) GetMatch(matchUUID string) (*Match, error) {
 	model := &Match{}
-	err := db.getModelForKey(model, getMatchKeyWithUuid(matchUuid))
+	err := db.getModelForKey(model, getMatchKeyWithUUID(matchUUID))
 	if err != nil {
 		return nil, err
 	} else {
@@ -243,21 +243,21 @@ func (db *RdsDb) GetMatch(matchUuid string) (*Match, error) {
 	}
 }
 
-func (db *RdsDb) GetDataMatches(userUuid string, page int, pageSize int) (*Page, error) {
+func (db *RdsDb) GetDataMatches(userUUID string, page int, pageSize int) (*Page, error) {
 	c := db.pool.Get()
 	defer c.Close()
-	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":match-list"))
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUUID+":match-list"))
 	start := page * pageSize
 	end := start + pageSize - 1
-	matchUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":match-list", start, end))
+	matchUUIDs, err := redis.Strings(c.Do("LRANGE", "user:"+userUUID+":match-list", start, end))
 	if err != nil {
 		return nil, err
 	}
-	matches := make([]interface{}, len(matchUuids))
+	matches := make([]interface{}, len(matchUUIDs))
 
-	for i, matchUuid := range matchUuids {
+	for i, matchUUID := range matchUUIDs {
 		rdsMatch := &Match{}
-		err = GetModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
+		err = GetModel(c, getMatchKeyWithUUID(matchUUID), rdsMatch)
 		if err != nil {
 			return nil, err
 		}
@@ -269,29 +269,29 @@ func (db *RdsDb) GetDataMatches(userUuid string, page int, pageSize int) (*Page,
 	}, err
 }
 
-func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.Match, int) {
+func (db *RdsDb) GetMatches(userUUID string, page int, pageSize int) ([]*models.Match, int) {
 	c := db.pool.Get()
 	defer c.Close()
-	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":match-list"))
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUUID+":match-list"))
 	start := page * pageSize
 	end := start + pageSize - 1
-	matchUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":match-list", start, end))
+	matchUUIDs, err := redis.Strings(c.Do("LRANGE", "user:"+userUUID+":match-list", start, end))
 	if err != nil {
 		return nil, 0
 	}
-	matches := make([]*models.Match, len(matchUuids))
+	matches := make([]*models.Match, len(matchUUIDs))
 
-	for i, matchUuid := range matchUuids {
+	for i, matchUUID := range matchUUIDs {
 		rdsMatch := &Match{}
-		err = GetModel(c, getMatchKeyWithUuid(matchUuid), rdsMatch)
+		err = GetModel(c, getMatchKeyWithUUID(matchUUID), rdsMatch)
 		if err != nil {
 			return nil, 0
 		}
 
-		bots := make([]*models.Bot, len(rdsMatch.BotUuids))
-		for j, botUuid := range rdsMatch.BotUuids {
+		bots := make([]*models.Bot, len(rdsMatch.BotUUIDs))
+		for j, botUUID := range rdsMatch.BotUUIDs {
 			bot := &models.Bot{}
-			err = GetModel(c, getBotKeyWithUuid(botUuid), bot)
+			err = GetModel(c, getBotKeyWithUUID(botUUID), bot)
 			if err != nil {
 				return nil, 0
 			}
@@ -299,9 +299,9 @@ func (db *RdsDb) GetMatches(userUuid string, page int, pageSize int) ([]*models.
 		}
 		//noinspection GoStructInitializationWithoutFieldNames
 		match := &models.Match{
-			rdsMatch.Uuid,
+			rdsMatch.UUID,
 			bots,
-			rdsMatch.MapUuid,
+			rdsMatch.MapUUID,
 			rdsMatch.Winner,
 			rdsMatch.Status,
 			rdsMatch.Competition,
@@ -319,7 +319,7 @@ func (db *RdsDb) CreateBcMap(model *models.BcMap) error {
 	if err != nil {
 		return err
 	}
-	err = c.Send(addLpush, getPrefix(model.Owner)+":map-list", model.Uuid)
+	err = c.Send(addLpush, getPrefix(model.Owner)+":map-list", model.UUID)
 	if err != nil {
 		return err
 	}
@@ -333,7 +333,7 @@ func (db *RdsDb) UpdateBcMap(model *models.BcMap) error {
 
 func (db *RdsDb) GetBcMap(uuid string) *models.BcMap {
 	model := &models.BcMap{}
-	err := db.getModelForKey(model, getBcMapWithUuid(uuid))
+	err := db.getModelForKey(model, getBcMapWithUUID(uuid))
 	if err != nil {
 		return nil
 	} else {
@@ -341,21 +341,21 @@ func (db *RdsDb) GetBcMap(uuid string) *models.BcMap {
 	}
 }
 
-func (db *RdsDb) GetBcMaps(userUuid string, page int, pageSize int) ([]*models.BcMap, int) {
+func (db *RdsDb) GetBcMaps(userUUID string, page int, pageSize int) ([]*models.BcMap, int) {
 	c := db.pool.Get()
 	defer c.Close()
-	length, _ := redis.Int(c.Do("LLEN", "user:"+userUuid+":map-list"))
+	length, _ := redis.Int(c.Do("LLEN", "user:"+userUUID+":map-list"))
 	start := page * pageSize
 	end := start + pageSize - 1
-	bcMapUuids, err := redis.Strings(c.Do("LRANGE", "user:"+userUuid+":map-list", start, end))
+	bcMapUUIDs, err := redis.Strings(c.Do("LRANGE", "user:"+userUUID+":map-list", start, end))
 	if err != nil {
 		return nil, 0
 	}
-	bcMaps := make([]*models.BcMap, len(bcMapUuids))
+	bcMaps := make([]*models.BcMap, len(bcMapUUIDs))
 
-	for i, bcMapUuid := range bcMapUuids {
+	for i, bcMapUUID := range bcMapUUIDs {
 		bcMap := &models.BcMap{}
-		err = GetModel(c, getBcMapWithUuid(bcMapUuid), bcMap)
+		err = GetModel(c, getBcMapWithUUID(bcMapUUID), bcMap)
 		if err != nil {
 			return nil, 0
 		}
@@ -410,30 +410,30 @@ func (db *RdsDb) setModelForKey(model interface{}, key string) error {
 }
 
 func getPrefix(c *models.Competitor) string {
-	return c.Type.String() + ":" + c.Uuid
+	return c.Type.String() + ":" + c.UUID
 }
 
 func getMatchKey(m *models.Match) string {
-	return getMatchKeyWithUuid(m.Uuid)
+	return getMatchKeyWithUUID(m.UUID)
 }
 
-func getMatchKeyWithUuid(key string) string {
+func getMatchKeyWithUUID(key string) string {
 	return "match:" + key
 }
 
 func getBotKey(b *models.Bot) string {
-	return getBotKeyWithUuid(b.Uuid)
+	return getBotKeyWithUUID(b.UUID)
 }
 
-func getBotKeyWithUuid(uuid string) string {
+func getBotKeyWithUUID(uuid string) string {
 	return "bot:" + uuid
 }
 
 func getBcMapKey(m *models.BcMap) string {
-	return getBcMapWithUuid(m.Uuid)
+	return getBcMapWithUUID(m.UUID)
 }
 
-func getBcMapWithUuid(uuid string) string {
+func getBcMapWithUUID(uuid string) string {
 	return "map:" + uuid
 }
 

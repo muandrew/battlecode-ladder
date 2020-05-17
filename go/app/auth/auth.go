@@ -1,13 +1,14 @@
 package auth
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/muandrew/battlecode-legacy-go/data"
 	"github.com/muandrew/battlecode-legacy-go/models"
-	"net/http"
-	"time"
 )
 
 const jwtCookieName = "xbclauth"
@@ -30,8 +31,8 @@ func NewAuth(db data.Db, jwtSecret []byte) *Auth {
 	}
 }
 
-func (auth Auth) GetUserWithApp(c echo.Context, app string, appUuid string, setupUser models.SetupNewUser) *models.User {
-	user := auth.db.GetUserWithApp(app, appUuid, setupUser)
+func (auth Auth) GetUserWithApp(c echo.Context, app string, appUUID string, setupUser models.SetupNewUser) *models.User {
+	user := auth.db.GetUserWithApp(app, appUUID, setupUser)
 	auth.setJwtInCookie(c, user)
 	return user
 }
@@ -42,7 +43,7 @@ func (auth Auth) setJwtInCookie(c echo.Context, user *models.User) string {
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["uuid"] = user.Uuid
+	claims["uuid"] = user.UUID
 	claims["name"] = user.Name
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
@@ -67,7 +68,7 @@ func GetName(c echo.Context) string {
 	return claims["name"].(string)
 }
 
-func GetUuid(c echo.Context) string {
+func GetUUID(c echo.Context) string {
 	user, ok := c.Get("user").(*jwt.Token)
 	if ok {
 		claims := user.Claims.(jwt.MapClaims)

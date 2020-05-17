@@ -2,7 +2,8 @@ package models
 
 import (
 	"errors"
-	"github.com/satori/go.uuid"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -11,9 +12,9 @@ const (
 )
 
 type Match struct {
-	Uuid        string
+	UUID        string
 	Bots        []*Bot
-	MapUuid     string
+	MapUUID     string
 	Winner      int
 	Status      *BuildStatus
 	Competition Competition
@@ -27,20 +28,20 @@ func CreateMatch(bots []*Bot, bcMap *BcMap) (*Match, error) {
 	competition := bots[0].Competition
 	for _, bot := range bots {
 		if bot == nil {
-			return nil, errors.New("Nil bot received.");
+			return nil, errors.New("Nil bot received.")
 		}
 		if competition != bot.Competition {
 			return nil, errors.New("Bots from different competitions can't play with each other.")
 		}
 	}
-	mapUuid := ""
+	mapUUID := ""
 	if bcMap != nil {
-		mapUuid = bcMap.Uuid
+		mapUUID = bcMap.UUID
 	}
 	return &Match{
 		uuid.NewV4().String(),
 		bots,
-		mapUuid,
+		mapUUID,
 		WinnerNone,
 		NewBuildStatus(),
 		competition,

@@ -13,7 +13,7 @@ func (ct CompetitorType) String() string {
 
 type Competitor struct {
 	Type CompetitorType
-	Uuid string
+	UUID string
 }
 
 func NewCompetitor(competitorType CompetitorType, uuid string) *Competitor {
@@ -21,12 +21,12 @@ func NewCompetitor(competitorType CompetitorType, uuid string) *Competitor {
 }
 
 func (c *Competitor) Equals(c2 *Competitor) bool {
-	return c.Type == c2.Type && c.Uuid == c2.Uuid
+	return c.Type == c2.Type && c.UUID == c2.UUID
 }
 
 func (c *Competitor) AsValue() Competitor {
 	return Competitor{
 		c.Type,
-		c.Uuid,
+		c.UUID,
 	}
 }

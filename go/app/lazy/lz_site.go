@@ -131,7 +131,7 @@ func wrapLoggedIn(engines []engine.Engine) func(context echo.Context) error {
 
 func wrapEngineHome(engine engine.Engine, db data.Db) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		uuid := auth.GetUuid(c)
+		uuid := auth.GetUUID(c)
 		bots, _ := db.GetBots(uuid, 0, 5)
 		matches, length := db.GetMatches(uuid, 0, 5)
 		maps, length := db.GetBcMaps(uuid, 0, 5)
@@ -157,7 +157,7 @@ func debugResponse(c echo.Context, model interface{}) error {
 
 func wrapPostUpload(engine engine.Engine, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		uuid := auth.GetUuid(c)
+		uuid := auth.GetUUID(c)
 		file, err := c.FormFile("file")
 		if err != nil {
 			return renderFailure(c, engine, failedUpload, err)
@@ -187,9 +187,9 @@ func wrapPostUpload(engine engine.Engine, ci *build.Ci) func(context echo.Contex
 
 func wrapPostMakePublic(engine engine.Engine, db data.Db) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		uuid := auth.GetUuid(c)
-		botUuid := c.FormValue("botUuid")
-		bot, err := db.SetPublicBot(uuid, botUuid)
+		uuid := auth.GetUUID(c)
+		botUUID := c.FormValue("botUUID")
+		bot, err := db.SetPublicBot(uuid, botUUID)
 		if err != nil {
 			return renderFailure(c, engine, "failed to set bot as public: ", err)
 		}
@@ -210,7 +210,7 @@ func wrapGetPublicBots(engine engine.Engine, db data.Db) func(ctx echo.Context) 
 
 func wrapPostMapUpload(engine engine.Engine, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		uuid := auth.GetUuid(c)
+		uuid := auth.GetUUID(c)
 		file, err := c.FormFile("file")
 		if err != nil {
 			return renderFailure(c, engine, failedUpload, err)
@@ -238,13 +238,13 @@ func wrapPostMapUpload(engine engine.Engine, ci *build.Ci) func(context echo.Con
 
 func wrapPostChallenge(e engine.Engine, db data.Db, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		botUuid := c.FormValue("botUuid")
-		oppUuid := c.FormValue("oppUuid")
-		mapUuid := c.FormValue("mapUuid")
+		botUUID := c.FormValue("botUUID")
+		oppUUID := c.FormValue("oppUUID")
+		mapUUID := c.FormValue("mapUUID")
 
-		ownBot := db.GetBot(botUuid)
-		oppBot := db.GetBot(oppUuid)
-		bcMap := db.GetBcMap(mapUuid)
+		ownBot := db.GetBot(botUUID)
+		oppBot := db.GetBot(oppUUID)
+		bcMap := db.GetBcMap(mapUUID)
 		if ownBot == nil || oppBot == nil {
 			return renderFailure(
 				c,
@@ -268,14 +268,14 @@ func wrapPostChallenge(e engine.Engine, db data.Db, ci *build.Ci) func(context e
 
 func wrapPostChallengeGame(engine engine.Engine, db data.Db, ci *build.Ci) func(context echo.Context) error {
 	return func(c echo.Context) error {
-		uuid := auth.GetUuid(c)
+		uuid := auth.GetUUID(c)
 		name := c.FormValue("name")
 		description := c.FormValue("description")
-		formBotUuids := c.FormValue("botUuids")
-		mapUuid := c.FormValue("mapUuid")
+		formBotUUIDs := c.FormValue("botUUIDs")
+		mapUUID := c.FormValue("mapUUID")
 
-		botUuids := strings.Split(formBotUuids, ",")
-		if len(botUuids) > maxBotsInGame {
+		botUUIDs := strings.Split(formBotUUIDs, ",")
+		if len(botUUIDs) > maxBotsInGame {
 			return renderFailure(
 				c,
 				engine,
@@ -284,21 +284,21 @@ func wrapPostChallengeGame(engine engine.Engine, db data.Db, ci *build.Ci) func(
 					"Too many fights the server will explode! The current max is %d",
 					maxBotsInGame)))
 		}
-		bots := make([]*models.Bot, len(botUuids), len(botUuids))
-		for i, botUuid := range botUuids {
-			bot := db.GetBot(botUuid)
+		bots := make([]*models.Bot, len(botUUIDs), len(botUUIDs))
+		for i, botUUID := range botUUIDs {
+			bot := db.GetBot(botUUID)
 			if bot == nil {
 				return renderFailure(
 					c,
 					engine,
 					failedChallenge,
-					errors.New(fmt.Sprintf("Couldn't find bot %s", botUuid)))
+					errors.New(fmt.Sprintf("Couldn't find bot %s", botUUID)))
 			} else {
 				bots[i] = bot
 			}
 		}
 
-		bcMap := db.GetBcMap(mapUuid)
+		bcMap := db.GetBcMap(mapUUID)
 		err := ci.RunGame(
 			engine,
 			models.NewCompetitor(models.CompetitorTypeUser, uuid),

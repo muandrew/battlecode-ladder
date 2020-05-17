@@ -7,10 +7,13 @@ import (
 )
 
 const (
-	WinnerNone    = -1
+	//WinnerNone no one wins, its a tie.
+	WinnerNone = -1
+	//WinnerNeutral if there is a neutral force like nature, it won.
 	WinnerNeutral = -2
 )
 
+//Match represents a single simulation
 type Match struct {
 	UUID        string
 	Bots        []*Bot
@@ -20,6 +23,7 @@ type Match struct {
 	Competition Competition
 }
 
+//CreateMatch creates a new instance of a Match object.
 func CreateMatch(bots []*Bot, bcMap *BcMap) (*Match, error) {
 	length := len(bots)
 	if length < 2 {

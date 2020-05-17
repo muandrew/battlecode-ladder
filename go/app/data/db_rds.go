@@ -11,14 +11,19 @@ import (
 )
 
 const (
+	//AddSet redis command to set.
 	AddSet   = "SET"
 	addLpush = "LPUSH"
 )
 
+//RdsDb and implementation of Db with Redis
+//In most cases using Redis is a bad idea as your main
+//datastore. Probably also in this case.
 type RdsDb struct {
 	pool *redis.Pool
 }
 
+//NewRdsDb sets up a new redis database
 func NewRdsDb(addr string) (*RdsDb, error) {
 	rdb := &RdsDb{pool: &redis.Pool{
 		MaxIdle:     3,
@@ -28,23 +33,23 @@ func NewRdsDb(addr string) (*RdsDb, error) {
 	err := rdb.Ping()
 	if err != nil {
 		return nil, err
-	} else {
-		return rdb, nil
 	}
+	return rdb, nil
 }
 
+//Ping check to see if the connection is working
 func (db *RdsDb) Ping() error {
 	c := db.pool.Get()
 	defer c.Close()
 	response, err := c.Do("PING")
 	if err != nil {
 		return err
-	} else {
-		fmt.Printf("redis ping: %s\n", response)
-		return nil
 	}
+	fmt.Printf("redis ping: %s\n", response)
+	return nil
 }
 
+//GetUserWithApp get a user from the specified app.
 func (db *RdsDb) GetUserWithApp(app string, appUUID string, generateUser func() *models.User) *models.User {
 	c := db.pool.Get()
 	defer c.Close()
@@ -72,12 +77,14 @@ func (db *RdsDb) GetUserWithApp(app string, appUUID string, generateUser func() 
 	return nil
 }
 
+//GetUser gets the user model
 func (db *RdsDb) GetUser(uuid string) *models.User {
 	model := &models.User{}
 	db.getModelForKey(model, "user:"+uuid)
 	return model
 }
 
+//GetBot gets teh bot model
 func (db *RdsDb) GetBot(uuid string) *models.Bot {
 	model := &models.Bot{}
 	err := db.getModelForKey(model, getBotKeyWithUUID(uuid))
@@ -87,6 +94,7 @@ func (db *RdsDb) GetBot(uuid string) *models.Bot {
 	return model
 }
 
+//CreateBot creates a bot entry
 func (db *RdsDb) CreateBot(model *models.Bot) error {
 	c := db.pool.Get()
 	defer c.Close()
@@ -103,10 +111,12 @@ func (db *RdsDb) CreateBot(model *models.Bot) error {
 	return err
 }
 
+//UpdateBot updaates a bot entry
 func (db *RdsDb) UpdateBot(model *models.Bot) error {
 	return db.setModelForKey(model, getBotKey(model))
 }
 
+//GetBots gets a list of bots
 func (db *RdsDb) GetBots(userUUID string, page int, pageSize int) ([]*models.Bot, int) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -130,6 +140,7 @@ func (db *RdsDb) GetBots(userUUID string, page int, pageSize int) ([]*models.Bot
 	return bots, length
 }
 
+//GetPublicBots gets a list of public bots
 func (db *RdsDb) GetPublicBots(page int, pageSize int) ([]*models.Bot, int) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -152,6 +163,7 @@ func (db *RdsDb) GetPublicBots(page int, pageSize int) ([]*models.Bot, int) {
 	return bots, length
 }
 
+//SetPublicBot set a bot as public
 func (db *RdsDb) SetPublicBot(userUUID string, botUUID string) (*models.Bot, error) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -206,6 +218,7 @@ func (db *RdsDb) SetPublicBot(userUUID string, botUUID string) (*models.Bot, err
 	return bot, nil
 }
 
+//CreateMatch creates a match entry
 func (db *RdsDb) CreateMatch(model *models.Match) error {
 	c := db.pool.Get()
 	defer c.Close()
@@ -229,20 +242,22 @@ func (db *RdsDb) CreateMatch(model *models.Match) error {
 	return err
 }
 
+//UpdateMatch updates a match entry
 func (db *RdsDb) UpdateMatch(model *models.Match) error {
 	return db.setModelForKey(CreateMatch(model), getMatchKey(model))
 }
 
+//GetMatch gets a match model
 func (db *RdsDb) GetMatch(matchUUID string) (*Match, error) {
 	model := &Match{}
 	err := db.getModelForKey(model, getMatchKeyWithUUID(matchUUID))
 	if err != nil {
 		return nil, err
-	} else {
-		return model, nil
 	}
+	return model, nil
 }
 
+//GetDataMatches gets a page of data Match models, they are an intermediate format.
 func (db *RdsDb) GetDataMatches(userUUID string, page int, pageSize int) (*Page, error) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -269,6 +284,7 @@ func (db *RdsDb) GetDataMatches(userUUID string, page int, pageSize int) (*Page,
 	}, err
 }
 
+//GetMatches gets a page of matches
 func (db *RdsDb) GetMatches(userUUID string, page int, pageSize int) ([]*models.Match, int) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -311,6 +327,7 @@ func (db *RdsDb) GetMatches(userUUID string, page int, pageSize int) ([]*models.
 	return matches, length
 }
 
+//CreateBcMap creates a new entry
 func (db *RdsDb) CreateBcMap(model *models.BcMap) error {
 	c := db.pool.Get()
 	defer c.Close()
@@ -327,20 +344,22 @@ func (db *RdsDb) CreateBcMap(model *models.BcMap) error {
 	return err
 }
 
+//UpdateBcMap updates an entry of BcMap
 func (db *RdsDb) UpdateBcMap(model *models.BcMap) error {
 	return db.setModelForKey(model, getBcMapKey(model))
 }
 
+//GetBcMap retrieves an entry of BcMap
 func (db *RdsDb) GetBcMap(uuid string) *models.BcMap {
 	model := &models.BcMap{}
 	err := db.getModelForKey(model, getBcMapWithUUID(uuid))
 	if err != nil {
 		return nil
-	} else {
-		return model
 	}
+	return model
 }
 
+//GetBcMaps retrieves a page of BcMap
 func (db *RdsDb) GetBcMaps(userUUID string, page int, pageSize int) ([]*models.BcMap, int) {
 	c := db.pool.Get()
 	defer c.Close()
@@ -364,7 +383,11 @@ func (db *RdsDb) GetBcMaps(userUUID string, page int, pageSize int) ([]*models.B
 	return bcMaps, length
 }
 
-//utility
+/*
+ utility
+*/
+
+//GetModel gets a model from Redis
 func GetModel(c redis.Conn, key string, model interface{}) error {
 	bin, err := c.Do("GET", key)
 	if err != nil {
@@ -376,6 +399,7 @@ func GetModel(c redis.Conn, key string, model interface{}) error {
 	return fmt.Errorf("Couldn't find model for key: %q", key)
 }
 
+//SendModel sends a model to redis
 func SendModel(c redis.Conn, action string, key string, model interface{}) error {
 	bin, err := json.Marshal(model)
 	if err != nil {
@@ -437,6 +461,7 @@ func getBcMapWithUUID(uuid string) string {
 	return "map:" + uuid
 }
 
+//Scan scan for a pattern in Redis
 func (db *RdsDb) Scan(pattern string, run func(redis.Conn, string)) error {
 	c := db.pool.Get()
 	defer c.Close()

@@ -2,11 +2,11 @@ package models
 
 import "github.com/muandrew/battlecode-legacy-go/utils"
 
-/**
-Resource Access and Management
+/*
+RAM Resource Access and Management
 
 Currently only the creator has write access.
- */
+*/
 type RAM struct {
 	owner      *Competitor
 	readPublic bool
@@ -16,28 +16,35 @@ type RAM struct {
 type ramAccessTier int
 
 const (
-	RamAccessNone = ramAccessTier(0)
-	RamAccessR    = ramAccessTier(1)
-	RamAccessRW   = ramAccessTier(3)
+	//RAMAccessNone no access
+	RAMAccessNone = ramAccessTier(0)
+	//RAMAccessR read
+	RAMAccessR = ramAccessTier(1)
+	//RAMAccessRW read and write allowed
+	RAMAccessRW   = ramAccessTier(3)
 	errorAccess   = utils.Error("Insufficient permission.")
 	errorArgument = utils.Error("Incorrect Argument.")
 )
 
+//CreateRAM creates a new instance of RAM
 func CreateRAM(owner *Competitor) *RAM {
 	return &RAM{owner: owner}
 }
 
-func (r *RAM) ReadAllowed(competitor *Competitor) bool {
+//ReadAllowed returns true if the actor should be allowed to read.
+func (r *RAM) ReadAllowed(actor *Competitor) bool {
 	if r.readPublic {
 		return true
 	}
-	return r.userBasedAccess(competitor, RamAccessR)
+	return r.userBasedAccess(actor, RAMAccessR)
 }
 
-func (r *RAM) WriteAllowed(competitor *Competitor) bool {
-	return r.userBasedAccess(competitor, RamAccessRW)
+//WriteAllowed returns true if the actor should be allowed to write.
+func (r *RAM) WriteAllowed(actor *Competitor) bool {
+	return r.userBasedAccess(actor, RAMAccessRW)
 }
 
+//SetPublic sets the resource to public if the actor has permission
 func (r *RAM) SetPublic(actor *Competitor, public bool) error {
 	if !r.WriteAllowed(actor) {
 		return errorAccess
@@ -46,6 +53,7 @@ func (r *RAM) SetPublic(actor *Competitor, public bool) error {
 	return nil
 }
 
+//SetAccess using the actor's permissions, sets this resources's access for the competitor.
 func (r *RAM) SetAccess(actor *Competitor, competitor *Competitor, access ramAccessTier) error {
 	if !r.WriteAllowed(actor) {
 		return errorAccess
@@ -53,7 +61,7 @@ func (r *RAM) SetAccess(actor *Competitor, competitor *Competitor, access ramAcc
 	if competitor == nil {
 		return errorArgument
 	}
-	if access == RamAccessNone {
+	if access == RAMAccessNone {
 		delete(r.whitelist, competitor.AsValue())
 	} else {
 		r.whitelist[competitor.AsValue()] = access
@@ -61,6 +69,7 @@ func (r *RAM) SetAccess(actor *Competitor, competitor *Competitor, access ramAcc
 	return nil
 }
 
+//TransferOwnership transfers ownership from actor to competitor if allowed
 func (r *RAM) TransferOwnership(actor *Competitor, competitor *Competitor) error {
 	if !actor.Equals(r.owner) {
 		return errorAccess

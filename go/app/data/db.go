@@ -4,6 +4,7 @@ import (
 	"github.com/muandrew/battlecode-legacy-go/models"
 )
 
+//Db represents an abstract contract for long term storage
 type Db interface {
 	GetUserWithApp(app string, appUUID string, generateUser func() *models.User) *models.User
 	GetUser(uuid string) *models.User

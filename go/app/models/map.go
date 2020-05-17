@@ -7,6 +7,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+//BcMap represents a map for a game
 type BcMap struct {
 	UUID        string
 	Owner       *Competitor
@@ -15,6 +16,7 @@ type BcMap struct {
 	Description UserString
 }
 
+//CreateBcMap creates a new instance of BcMap
 func CreateBcMap(owner *Competitor, filename string, description string) (*BcMap, error) {
 	uFileName, err := NewUserString(filename, BotMaxName, RegexBlacklist(RegexFilterFilename))
 	if err != nil {

@@ -3,9 +3,11 @@ package models
 import uuid "github.com/satori/go.uuid"
 
 const (
+	//GameTypeRoundRobin if you want to play round robin
 	GameTypeRoundRobin = "roundRobin"
 )
 
+//Game composed of multiple matches.
 type Game struct {
 	UUID        string
 	Owner       *Competitor
@@ -18,10 +20,12 @@ type Game struct {
 	Matches     []*Match
 }
 
+//GameRoundRobin a particular type of game.
 type GameRoundRobin struct {
 	*Game
 }
 
+//CreateGameRoundRobin creates GameRoundRobin
 func CreateGameRoundRobin(
 	owner *Competitor,
 	competition Competition,
